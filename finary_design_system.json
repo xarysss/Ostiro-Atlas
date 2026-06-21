@@ -1,0 +1,149 @@
+{
+  "name": "Finary Inspired Design System",
+  "description": "Palette et règles UI inspirées du style premium fintech de Finary.",
+  "themes": {
+    "dark": {
+      "colors": {
+        "background": {
+          "main": "#000000",
+          "secondary": "#101014",
+          "surface": "#131314",
+          "surfaceActive": "#27221D",
+          "buttonSecondary": "#1C1C1C",
+          "warmGradientStart": "#282018",
+          "warmGradientEnd": "#241C14"
+        },
+        "text": {
+          "primary": "#ECF0F4",
+          "white": "#FCFCFC",
+          "secondary": "#AEB0B7",
+          "muted": "#5F6268"
+        },
+        "accent": {
+          "gold": "#E8C08C",
+          "goldStrong": "#E9C28E",
+          "goldDark": "#B89870",
+          "goldMuted": "#BC9C74"
+        },
+        "data": {
+          "purple": "#783878",
+          "blue": "#506CE8",
+          "violet": "#6850DC",
+          "pink": "#E08894",
+          "positive": "#13C79B",
+          "positiveAlt": "#10B981"
+        }
+      }
+    },
+    "light": {
+      "colors": {
+        "background": {
+          "main": "#F5F6F7",
+          "secondary": "#F4F4F4",
+          "surface": "#FFFFFF",
+          "sidebar": "#E7E8EA",
+          "buttonSecondary": "#E8ECF0",
+          "border": "#CCD0D4"
+        },
+        "text": {
+          "primary": "#131314",
+          "secondary": "#6C6C70",
+          "muted": "#848484",
+          "white": "#FCFCFC"
+        },
+        "accent": {
+          "gold": "#E4B070",
+          "goldStrong": "#E8C08C",
+          "goldDark": "#B89870"
+        },
+        "data": {
+          "purple": "#783878",
+          "blue": "#506CE8",
+          "violet": "#6850DC",
+          "pink": "#E08894",
+          "positive": "#13C79B",
+          "positiveAlt": "#10B981"
+        }
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": "Inter, Geist, SF Pro Display, Manrope, Arial, sans-serif"
+    },
+    "sizes": {
+      "heroTitleDesktop": "72px-96px",
+      "h1": "56px",
+      "h2": "40px",
+      "h3": "28px",
+      "body": "16px",
+      "ui": "14px",
+      "caption": "13px"
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "lineHeight": {
+      "hero": "0.95-1.05",
+      "title": "1.1",
+      "body": "1.5"
+    }
+  },
+  "radius": {
+    "button": "999px",
+    "card": "16px-24px",
+    "largeSection": "32px"
+  },
+  "spacing": {
+    "sectionVertical": "96px-160px",
+    "containerMaxWidth": "1200px",
+    "cardPadding": "24px-32px",
+    "buttonPadding": "12px 22px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "{accent.gold}",
+      "textColor": "#000000",
+      "borderRadius": "999px",
+      "fontWeight": 600
+    },
+    "buttonSecondaryDark": {
+      "background": "#1C1C1C",
+      "textColor": "#ECF0F4",
+      "borderRadius": "999px",
+      "border": "1px solid rgba(255,255,255,0.08)"
+    },
+    "cardDark": {
+      "background": "#101014",
+      "borderRadius": "20px",
+      "border": "1px solid rgba(255,255,255,0.06)",
+      "shadow": "0 24px 80px rgba(0,0,0,0.45)"
+    },
+    "cardLight": {
+      "background": "#FFFFFF",
+      "borderRadius": "20px",
+      "border": "1px solid rgba(0,0,0,0.06)",
+      "shadow": "0 24px 80px rgba(0,0,0,0.08)"
+    }
+  },
+  "styleGuidelines": {
+    "mood": "fintech premium, sobre, moderne, luxueux, dashboard SaaS",
+    "do": [
+      "Utiliser beaucoup d'espace vide.",
+      "Limiter les couleurs vives aux graphiques.",
+      "Utiliser le beige/or pour les CTA et les éléments premium.",
+      "Créer des cartes très propres avec des coins arrondis.",
+      "Privilégier le dark mode pour l'identité principale."
+    ],
+    "avoid": [
+      "Trop de couleurs partout.",
+      "Des bordures trop visibles.",
+      "Des ombres trop fortes en light mode.",
+      "Des polices fantaisie.",
+      "Une interface bancaire trop classique."
+    ]
+  }
+}

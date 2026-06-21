@@ -45,17 +45,17 @@ import type { PortfolioData, Account, Position, Transaction, Dividend, Fee, Data
 
 // Asset category colors for mapping
 const categoryColors: Record<string, string> = {
-  "Comptes bancaires": "#8f85ff",
-  "Livrets d'épargne": "#c5a8ff",
-  "PEA": "#6aa9ff",
-  "CTO": "#5fcdeb",
-  "Assurance-vie": "#74a9d8",
-  "PER": "#a696d4",
-  "Crypto": "#ff8e72",
-  "Immobilier": "#f4c66b",
-  "Prêts & Dettes": "#ef6d7a",
-  "Métaux précieux & Objets": "#d7b36a",
-  "Autres actifs": "#aab5af"
+  "Comptes bancaires": "#506CE8",
+  "Livrets d'épargne": "#6850DC",
+  "PEA": "#783878",
+  "CTO": "#BC9C74",
+  "Assurance-vie": "#B89870",
+  "PER": "#E8C08C",
+  "Crypto": "#E08894",
+  "Immobilier": "#13C79B",
+  "Prêts & Dettes": "#E08894",
+  "Métaux précieux & Objets": "#BC9C74",
+  "Autres actifs": "#AEB0B7"
 };
 
 const makePoints = (values: number[], width = 760, height = 230) => {
@@ -96,16 +96,16 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
         </div>
         
         <div className="empty-dashboard-card panel" style={{ 
-          padding: "45px 30px", 
+          padding: "48px 32px", 
           textAlign: "center", 
           display: "flex", 
           flexDirection: "column", 
           alignItems: "center", 
-          gap: "24px", 
-          background: "linear-gradient(135deg, rgba(143,133,255,0.06), rgba(12,12,20,0.8))", 
-          border: "1px solid rgba(143,133,255,0.18)", 
-          borderRadius: "16px",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.3)"
+          gap: "28px", 
+          background: "linear-gradient(135deg, var(--panel), #16120e)", 
+          border: "1px solid var(--line-soft)", 
+          borderRadius: "20px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.45)"
         }}>
           <div className="brand__mark" style={{ width: "48px", height: "48px" }}><span/><span/><span/></div>
           <h2 style={{ fontSize: "20px", margin: "0", fontWeight: "600", letterSpacing: "-0.02em" }}>Bienvenue, ajoutez un premier élément pour construire votre patrimoine</h2>
@@ -138,7 +138,7 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
         </div>
 
         {profile.answers.experience === "beginner" && (
-          <div className="beginner-tip" style={{ marginTop: "20px", display: "flex", gap: "8px", background: "rgba(143,133,255,0.06)", padding: "12px", borderRadius: "8px" }}>
+          <div className="beginner-tip" style={{ marginTop: "20px", display: "flex", gap: "8px", background: "rgba(232, 192, 140, 0.05)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(232, 192, 140, 0.1)" }}>
             <Sparkles size={18} style={{ color: "var(--green)" }} />
             <div>
               <strong>Repère utile</strong>
@@ -175,7 +175,7 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
     label,
     value,
     percent: totalAssets > 0 ? parseFloat(((value / totalAssets) * 100).toFixed(1)) : 0,
-    color: categoryColors[label] || "#8f85ff"
+    color: categoryColors[label] || "#E8C08C"
   })).sort((a, b) => b.value - a.value);
 
   // Fake chart points based on netWealth
@@ -184,9 +184,20 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
     netWealth * 0.95, netWealth * 0.96, netWealth * 0.98, netWealth
   ];
 
+  // Dynamic conic-gradient for the donut chart
+  let currentOffset = 0;
+  const conicGradientParts = allocations.length > 0 
+    ? allocations.map(item => {
+        const start = currentOffset;
+        currentOffset += item.percent;
+        return `${item.color} ${start}% ${currentOffset}%`;
+      }).join(", ")
+    : "var(--line)";
+  const donutBackground = allocations.length > 0 ? `conic-gradient(${conicGradientParts})` : "var(--line)";
+
   return (
     <>
-      <div className="welcome-row">
+      <div className="welcome-row" style={{ marginBottom: "24px" }}>
         <div>
           <span className="eyebrow">Tableau de bord</span>
           <h1>Bonsoir, {profile.name.split(" ")[0]}.</h1>
@@ -197,42 +208,67 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
         </button>
       </div>
 
-      <div className="metric-grid">
-        <MetricCard label="Patrimoine net" value={euro(netWealth)} change={`${netWealth >= 0 ? "+" : ""}${euro(netWealth)}`} icon={WalletCards} status="reliable" onInspect={() => inspect(metricTrace("Patrimoine net", euro(netWealth), "Σ actifs - Σ passifs"))} />
+      {/* Hero Panel with Giant Net Worth and Sleek minimalist chart */}
+      <div className="dashboard-hero panel" style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 24px 24px 24px",
+        marginBottom: "20px",
+        position: "relative",
+        animation: "fadeIn 0.5s ease",
+        background: "linear-gradient(180deg, var(--panel) 0%, rgba(0,0,0,0.2) 100%)",
+        border: "1px solid var(--line-soft)",
+      }}>
+        <span className="eyebrow" style={{ textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "11px", color: "var(--muted)", marginBottom: "8px" }}>Patrimoine Net</span>
+        <h1 style={{ fontSize: "52px", fontWeight: 700, letterSpacing: "-0.04em", margin: "0 0 8px 0", color: "#FCFCFC" }}>
+          {euro(netWealth)}
+        </h1>
+        
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "12px", marginBottom: "32px" }}>
+          <span className="positive" style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+            <TrendingUp size={13} /> +1,2% (+{euro(netWealth * 0.012)})
+          </span>
+          <span style={{ color: "var(--muted-2)" }}>ce mois-ci</span>
+        </div>
+
+        {/* Minimalist chart, very clean, no axes to match Finary style */}
+        <div style={{ position: "relative", width: "100%", height: "180px", overflow: "visible" }}>
+          <svg viewBox="0 0 760 180" preserveAspectRatio="none" style={{ width: "100%", height: "100%", overflow: "visible" }}>
+            <defs>
+              <linearGradient id="finary-wealth-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="var(--green)" stopOpacity="0.12"/>
+                <stop offset="1" stopColor="var(--green)" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            {/* Faint grid lines */}
+            <line x1="0" y1="10" x2="760" y2="10" stroke="rgba(255,255,255,0.015)" strokeWidth="1" />
+            <line x1="0" y1="90" x2="760" y2="90" stroke="rgba(255,255,255,0.015)" strokeWidth="1" />
+            <line x1="0" y1="170" x2="760" y2="170" stroke="rgba(255,255,255,0.015)" strokeWidth="1" />
+            
+            <polygon points={`0,180 ${makePoints(mockSeries, 760, 180)} 760,180`} fill="url(#finary-wealth-gradient)" />
+            <polyline points={makePoints(mockSeries, 760, 180)} style={{ fill: "none", stroke: "var(--green)", strokeWidth: 2.2, strokeLinecap: "round" }} />
+          </svg>
+        </div>
+      </div>
+
+      <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "20px" }}>
         <MetricCard label="Investissements" value={euro(totalInvestments)} change={`${totalGain >= 0 ? "+" : ""}${euro(totalGain)} total`} icon={TrendingUp} status="reliable" onInspect={() => inspect(metricTrace("Investissements", euro(totalInvestments), "Σ valeurs de marché des positions"))} />
         <MetricCard label="Performance nette" value={`${totalGain >= 0 ? "+" : ""}${euro(totalGain)}`} change="plus-value latente" icon={BarChart3} status="verified" onInspect={() => inspect(metricTrace("Performance nette", `${totalGain >= 0 ? "+" : ""}${euro(totalGain)}`, "valeur finale - coût d'achat"))} />
         <MetricCard label="Revenus dividendes" value={euro(totalDividends)} change="nets perçus" icon={CircleDollarSign} status="reliable" onInspect={() => inspect(metricTrace("Revenus dividendes", euro(totalDividends), "Σ dividendes perçus"))} />
       </div>
 
       <div className="dashboard-grid">
-        <Section title="Évolution du patrimoine" subtitle="Historique récent" className="chart-panel">
-          <div className="chart-summary"><strong>{euro(netWealth)}</strong><span className="positive">Valeur nette actuelle</span></div>
-          <div className="line-chart">
-            <span className="chart-axis chart-axis--top">{Math.round(netWealth / 1000)} k€</span>
-            <span className="chart-axis chart-axis--middle">{Math.round((netWealth * 0.95) / 1000)} k€</span>
-            <span className="chart-axis chart-axis--bottom">{Math.round((netWealth * 0.9) / 1000)} k€</span>
-            <svg viewBox="0 0 760 230" preserveAspectRatio="none" aria-label="Courbe du patrimoine">
-              <defs><linearGradient id="wealth-fill-real" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8f85ff" stopOpacity=".3"/><stop offset="1" stopColor="#8f85ff" stopOpacity="0"/></linearGradient></defs>
-              <line x1="0" y1="10" x2="760" y2="10"/><line x1="0" y1="115" x2="760" y2="115"/><line x1="0" y1="220" x2="760" y2="220"/>
-              <polygon points={`0,230 ${makePoints(mockSeries)} 760,230`} fill="url(#wealth-fill-real)" />
-              <polyline points={makePoints(mockSeries)} className="wealth-line" />
-            </svg>
-          </div>
-        </Section>
-
         <Section title="Allocation" subtitle="Répartition du patrimoine" action={<button className="text-button" onClick={() => navigate("accounts")}>Détails <ChevronRight size={15}/></button>}>
           <div className="allocation-wrap">
-            <div className="donut" style={{
-              background: allocations.length > 0 
-                ? `conic-gradient(#8f85ff 0% ${allocations[0]?.percent || 0}%, #d7b36a ${allocations[0]?.percent || 0}% ${(allocations[0]?.percent || 0) + (allocations[1]?.percent || 0)}%, #6aa9ff ${(allocations[0]?.percent || 0) + (allocations[1]?.percent || 0)}% 100%)`
-                : "var(--line)"
-            }}>
+            <div className="donut" style={{ background: donutBackground }}>
               <div><strong>{euro(netWealth)}</strong><span>Total net</span></div>
             </div>
             <div className="allocation-list">
-              {allocations.map((item, index) => (
+              {allocations.map((item) => (
                 <div key={item.label}>
-                  <i style={{ background: index === 0 ? "#8f85ff" : index === 1 ? "#d7b36a" : "#6aa9ff" }}/>
+                  <i style={{ background: item.color }}/>
                   <span>{item.label}<small>{euro(item.value)}</small></span>
                   <strong>{item.percent}%</strong>
                 </div>
@@ -240,39 +276,34 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
             </div>
           </div>
         </Section>
-      </div>
 
-      <div className="dashboard-lower">
-        <Section title="Comptes et actifs" subtitle="Dernières valeurs connues" action={<button className="text-button" onClick={() => navigate("accounts")}>Tout voir <ChevronRight size={15}/></button>}>
-          <div className="account-list">
-            {data.accounts.slice(0, 4).map((account) => (
-              <button key={account.id} onClick={() => inspect({ title: account.name, value: euro(account.value), status: account.reliability, asOf: account.updated, source: account.institution, formula: account.value < 0 ? "Capital restant dû" : "Solde", explanation: `Valeur issue de ${account.kind.toLowerCase()}.` })}>
-                <i style={{ background: account.color }}/>
-                <span><strong>{account.name}</strong><small>{account.institution}</small></span>
-                <span className="account-list__value"><strong>{euro(account.value)}</strong><ReliabilityBadge status={account.reliability} compact /></span>
-              </button>
-            ))}
-          </div>
-        </Section>
-        
-        <Section title="À vérifier" subtitle="Santé des données" action={<button className="count-badge">{data.dataIssues.length} éléments</button>}>
-          {data.dataIssues.length > 0 ? (
-            <div className="attention-list">
-              {data.dataIssues.slice(0, 3).map((issue) => (
-                <button key={issue.id} onClick={() => navigate("data-health")}>
-                  <span className={`severity severity--${issue.severity}`}><AlertTriangle size={16}/></span>
-                  <span><strong>{issue.title}</strong><small>{issue.target}</small></span>
-                  <ChevronRight size={16}/>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <Section title="Comptes et actifs" subtitle="Dernières valeurs connues" action={<button className="text-button" onClick={() => navigate("accounts")}>Tout voir <ChevronRight size={15}/></button>}>
+            <div className="account-list">
+              {data.accounts.slice(0, 4).map((account) => (
+                <button key={account.id} onClick={() => inspect({ title: account.name, value: euro(account.value), status: account.reliability, asOf: account.updated, source: account.institution, formula: account.value < 0 ? "Capital restant dû" : "Solde", explanation: `Valeur issue de ${account.kind.toLowerCase()}.` })}>
+                  <i style={{ background: categoryColors[account.kind] || account.color }}/>
+                  <span><strong>{account.name}</strong><small>{account.institution}</small></span>
+                  <span className="account-list__value"><strong>{euro(account.value)}</strong><ReliabilityBadge status={account.reliability} compact /></span>
                 </button>
               ))}
             </div>
-          ) : (
-            <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "11px" }}>
-              <CheckCircle2 size={16} style={{ color: "var(--positive)", marginRight: "8px", verticalAlign: "middle" }} />
-              Toutes les données sont cohérentes !
-            </div>
+          </Section>
+          
+          {data.dataIssues.length > 0 && (
+            <Section title="À vérifier" subtitle="Santé des données" action={<button className="count-badge">{data.dataIssues.length} éléments</button>}>
+              <div className="attention-list">
+                {data.dataIssues.slice(0, 3).map((issue) => (
+                  <button key={issue.id} onClick={() => navigate("data-health")}>
+                    <span className={`severity severity--${issue.severity}`}><AlertTriangle size={16}/></span>
+                    <span><strong>{issue.title}</strong><small>{issue.target}</small></span>
+                    <ChevronRight size={16}/>
+                  </button>
+                ))}
+              </div>
+            </Section>
           )}
-        </Section>
+        </div>
       </div>
     </>
   );

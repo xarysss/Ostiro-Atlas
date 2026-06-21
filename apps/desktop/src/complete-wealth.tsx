@@ -29,17 +29,17 @@ const popularInstitutions = [
 
 // Asset Categories
 const assetCategories = [
-  { id: "bank_accounts", name: "Comptes bancaires", desc: "Comptes courants et dépôts à vue", icon: Landmark, color: "#8f85ff" },
-  { id: "savings", name: "Livrets d'épargne", desc: "Livret A, LDDS, LEP, PEL...", icon: BadgePercent, color: "#c5a8ff" },
-  { id: "pea", name: "PEA", desc: "Plan d'Épargne en Actions français", icon: TrendingUp, color: "#6aa9ff" },
-  { id: "cto", name: "CTO", desc: "Compte Titres Ordinaire international", icon: Coins, color: "#5fcdeb" },
-  { id: "life_insurance", name: "Assurance-vie", desc: "Contrats d'assurance-vie et fonds euros", icon: BriefcaseBusiness, color: "#74a9d8" },
-  { id: "per", name: "PER", desc: "Plan d'Épargne Retraite", icon: Calculator, color: "#a696d4" },
-  { id: "crypto", name: "Crypto", desc: "Bitcoin, Ethereum, exchanges et portefeuilles physiques", icon: Coins, color: "#ff8e72" },
-  { id: "real_estate", name: "Immobilier", desc: "Résidence principale, investissement locatif, SCPI...", icon: Home, color: "#f4c66b" },
-  { id: "loans", name: "Prêts & Dettes", desc: "Crédits immobiliers, prêts conso, dettes privées", icon: CircleAlert, color: "#ef6d7a" },
-  { id: "metals", name: "Métaux précieux & Objets", desc: "Or, argent, montres, oeuvres d'art...", icon: Sparkles, color: "#d7b36a" },
-  { id: "others", name: "Autres actifs", desc: "Entreprises, parts sociales, cash...", icon: HelpCircle, color: "#aab5af" }
+  { id: "bank_accounts", name: "Comptes bancaires", desc: "Comptes courants et dépôts à vue", icon: Landmark, color: "#506CE8" },
+  { id: "savings", name: "Livrets d'épargne", desc: "Livret A, LDDS, LEP, PEL...", icon: BadgePercent, color: "#6850DC" },
+  { id: "pea", name: "PEA", desc: "Plan d'Épargne en Actions français", icon: TrendingUp, color: "#783878" },
+  { id: "cto", name: "CTO", desc: "Compte Titres Ordinaire international", icon: Coins, color: "#BC9C74" },
+  { id: "life_insurance", name: "Assurance-vie", desc: "Contrats d'assurance-vie et fonds euros", icon: BriefcaseBusiness, color: "#B89870" },
+  { id: "per", name: "PER", desc: "Plan d'Épargne Retraite", icon: Calculator, color: "#E8C08C" },
+  { id: "crypto", name: "Crypto", desc: "Bitcoin, Ethereum, exchanges et portefeuilles physiques", icon: Coins, color: "#E08894" },
+  { id: "real_estate", name: "Immobilier", desc: "Résidence principale, investissement locatif, SCPI...", icon: Home, color: "#13C79B" },
+  { id: "loans", name: "Prêts & Dettes", desc: "Crédits immobiliers, prêts conso, dettes privées", icon: CircleAlert, color: "#E08894" },
+  { id: "metals", name: "Métaux précieux & Objets", desc: "Or, argent, montres, oeuvres d'art...", icon: Sparkles, color: "#BC9C74" },
+  { id: "others", name: "Autres actifs", desc: "Entreprises, parts sociales, cash...", icon: HelpCircle, color: "#AEB0B7" }
 ];
 
 interface CompleteWealthProps {
