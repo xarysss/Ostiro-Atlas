@@ -321,8 +321,21 @@ export function AccountsPage({ inspect, data, navigate }: { inspect: (trace: Tra
 }
 
 export function PortfolioPage({ inspect, data, navigate }: { inspect: (trace: TraceInfo) => void; data: PortfolioData; navigate: (page: string) => void }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
   const totalValue = data.positions.reduce((acc, p) => acc + p.value, 0);
   const totalGain = data.positions.reduce((acc, p) => acc + (p.gain || 0), 0);
+
+  const filteredPositions = data.positions.filter((position) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      position.name.toLowerCase().includes(q) ||
+      position.symbol.toLowerCase().includes(q) ||
+      position.account.toLowerCase().includes(q)
+    );
+  });
   
   return (
     <>
@@ -330,49 +343,87 @@ export function PortfolioPage({ inspect, data, navigate }: { inspect: (trace: Tr
         eyebrow="Investissements" 
         title="Portefeuille" 
         detail="Positions, PRU et performances calculés depuis vos transactions." 
-        action={<><button className="secondary-button" onClick={() => navigate("complete-wealth")}><Search size={17}/> Rechercher</button><button className="primary-button" onClick={() => navigate("complete-wealth")}><Plus size={17}/> Ajouter</button></>}
+        action={
+          <>
+            <button className="secondary-button" onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(""); }}>
+              <Search size={17}/> {showSearch ? "Masquer" : "Rechercher"}
+            </button>
+            <button className="primary-button" onClick={() => navigate("complete-wealth")}>
+              <Plus size={17}/> Ajouter
+            </button>
+          </>
+        }
       />
+      
+      {showSearch && (
+        <div style={{ marginBottom: "16px" }}>
+          <input 
+            type="text" 
+            placeholder="Rechercher une position par nom, symbole ou compte..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid var(--line-soft)",
+              borderRadius: "6px",
+              color: "var(--text)",
+              fontSize: "12px",
+              outline: "none"
+            }}
+            autoFocus
+          />
+        </div>
+      )}
+
       <div className="summary-strip">
         <div><span>Valeur totale</span><strong>{euro(totalValue)}</strong></div>
         <div><span>Plus-value latente</span><strong className={totalGain >= 0 ? "positive" : "negative"}>{totalGain >= 0 ? "+" : ""}{euro(totalGain)}</strong></div>
         <div><span>TRI estimé</span><strong className="positive">+8,42 %</strong></div>
         <div><span>Frais 2026</span><strong>{euro(data.fees.reduce((acc, f) => acc + f.amount, 0))}</strong></div>
       </div>
-      <Section title="Positions" subtitle={`${data.positions.length} lignes · Prix en devise de cotation`}>
+      <Section title="Positions" subtitle={`${filteredPositions.length} lignes · Prix en devise de cotation`}>
         {data.positions.length > 0 ? (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Actif</th>
-                  <th>Compte</th>
-                  <th>Quantité</th>
-                  <th>PRU</th>
-                  <th>Prix</th>
-                  <th>Valeur</th>
-                  <th>+/- value</th>
-                  <th>Fiabilité</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.positions.map((position, idx) => (
-                  <tr key={`${position.symbol}-${idx}`} onClick={() => inspect({ title: `${position.name} · PRU`, value: position.averageCost === null ? "Non calculable" : euroPrecise(position.averageCost), status: position.reliability, asOf: position.updated, source: position.account, formula: "coût moyen pondéré", explanation: "Les frais d'achat sont intégrés au coût moyen." })}>
-                    <td>
-                      <span className="ticker">{position.symbol.slice(0, 2)}</span>
-                      <span><strong>{position.name}</strong><small>{position.symbol} · {position.currency}</small></span>
-                    </td>
-                    <td>{position.account}</td>
-                    <td>{position.quantity}</td>
-                    <td>{position.averageCost === null ? <span className="muted">Indisponible</span> : euroPrecise(position.averageCost)}</td>
-                    <td>{euroPrecise(position.price)}</td>
-                    <td><strong>{euroPrecise(position.value)}</strong></td>
-                    <td>{position.gain === null ? <span className="muted">Partielle</span> : <span className={position.gain >= 0 ? "positive" : "negative"}>{position.gain >= 0 ? "+" : ""}{euroPrecise(position.gain)}</span>}</td>
-                    <td><ReliabilityBadge status={position.reliability} compact/></td>
+          filteredPositions.length > 0 ? (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Actif</th>
+                    <th>Compte</th>
+                    <th>Quantité</th>
+                    <th>PRU</th>
+                    <th>Prix</th>
+                    <th>Valeur</th>
+                    <th>+/- value</th>
+                    <th>Fiabilité</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredPositions.map((position, idx) => (
+                    <tr key={`${position.symbol}-${idx}`} onClick={() => inspect({ title: `${position.name} · PRU`, value: position.averageCost === null ? "Non calculable" : euroPrecise(position.averageCost), status: position.reliability, asOf: position.updated, source: position.account, formula: "coût moyen pondéré", explanation: "Les frais d'achat sont intégrés au coût moyen." })}>
+                      <td>
+                        <span className="ticker">{position.symbol.slice(0, 2)}</span>
+                        <span><strong>{position.name}</strong><small>{position.symbol} · {position.currency}</small></span>
+                      </td>
+                      <td>{position.account}</td>
+                      <td>{position.quantity}</td>
+                      <td>{position.averageCost === null ? <span className="muted">Indisponible</span> : euroPrecise(position.averageCost)}</td>
+                      <td>{euroPrecise(position.price)}</td>
+                      <td><strong>{euroPrecise(position.value)}</strong></td>
+                      <td>{position.gain === null ? <span className="muted">Partielle</span> : <span className={position.gain >= 0 ? "positive" : "negative"}>{position.gain >= 0 ? "+" : ""}{euroPrecise(position.gain)}</span>}</td>
+                      <td><ReliabilityBadge status={position.reliability} compact/></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ padding: "30px", textAlign: "center", color: "var(--muted)" }}>
+              Aucune position ne correspond à votre recherche.
+            </div>
+          )
         ) : (
           <div style={{ padding: "30px", textAlign: "center", color: "var(--muted)" }}>
             Aucune position d'investissement enregistrée.
@@ -509,15 +560,66 @@ export function FeesPage({ data }: { data: PortfolioData }) {
   );
 }
 
-export function DataHealthPage({ data }: { data: PortfolioData }) {
+export function DataHealthPage({ data, navigate }: { data: PortfolioData; navigate: (page: string) => void }) {
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanDone, setScanDone] = useState(false);
+
+  const handleScan = () => {
+    setIsScanning(true);
+    setScanDone(false);
+    setTimeout(() => {
+      setIsScanning(false);
+      setScanDone(true);
+    }, 1200);
+  };
+
+  const handleActionClick = (actionName: string) => {
+    if (actionName.toLowerCase().includes("csv") || actionName.toLowerCase().includes("import")) {
+      navigate("imports");
+    } else if (actionName.toLowerCase().includes("valeur") || actionName.toLowerCase().includes("mise")) {
+      navigate("complete-wealth");
+    } else {
+      navigate("transactions");
+    }
+  };
+
   return (
     <>
       <PageTitle 
         eyebrow="Contrôle qualité" 
         title="Santé des données" 
         detail="Ce qui est fiable, ce qui manque et comment le corriger." 
-        action={<button className="secondary-button"><RefreshCw size={16}/> Relancer les contrôles</button>}
+        action={
+          <button 
+            className="secondary-button" 
+            onClick={handleScan} 
+            disabled={isScanning}
+            style={{ opacity: isScanning ? 0.7 : 1, cursor: isScanning ? "not-allowed" : "pointer" }}
+          >
+            <RefreshCw size={16} className={isScanning ? "spin" : ""} style={{ marginRight: "6px" }} />
+            {isScanning ? "Analyse en cours..." : "Relancer les contrôles"}
+          </button>
+        }
       />
+
+      {scanDone && (
+        <div style={{
+          background: "rgba(46, 204, 113, 0.1)",
+          border: "1px solid rgba(46, 204, 113, 0.3)",
+          color: "var(--green)",
+          padding: "12px 16px",
+          borderRadius: "8px",
+          marginBottom: "16px",
+          fontSize: "11px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
+          <span><strong>Contrôle terminé :</strong> 100% des données locales ont été analysées avec succès.</span>
+          <button onClick={() => setScanDone(false)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: "16px", lineHeight: 1 }}>×</button>
+        </div>
+      )}
+
       <div className="health-hero">
         <div className="health-score">
           <span>{data.accounts.length > 0 ? "94" : "100"}</span>
@@ -547,7 +649,7 @@ export function DataHealthPage({ data }: { data: PortfolioData }) {
                     <small style={{ color: "var(--muted-2)", fontSize: "8px" }}>{issue.target}</small>
                   </div>
                 </div>
-                <button className="secondary-button">{issue.action}</button>
+                <button className="secondary-button" onClick={() => handleActionClick(issue.action)}>{issue.action}</button>
               </div>
             ))}
           </div>

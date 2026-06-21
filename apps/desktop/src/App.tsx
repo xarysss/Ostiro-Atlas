@@ -197,7 +197,7 @@ export default function App() {
     dividends: <DividendsPage data={portfolioData} />,
     fees: <FeesPage data={portfolioData} />,
     imports: <ImportPage data={portfolioData} onSaveData={handleSavePortfolioData} navigate={navigate} />,
-    "data-health": <DataHealthPage data={portfolioData} />,
+    "data-health": <DataHealthPage data={portfolioData} navigate={navigate} />,
     "sync-health": <SyncHealthPage />,
     tools: <ToolsPage defaultTab={toolsTab} />,
     exports: <ExportsPage />,
