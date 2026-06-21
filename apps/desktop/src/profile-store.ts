@@ -149,15 +149,22 @@ export async function deleteProfile(profile: LocalProfile) {
   await db.execute("UPDATE profiles SET deleted_at = $1 WHERE id = $2", [new Date().toISOString(), profile.id]);
 }
 
-export async function updateLocalProfile(profile: LocalProfile, changes: Partial<LocalProfile["answers"]>) {
-  const updated: LocalProfile = { ...profile, answers: { ...profile.answers, ...changes } };
+export async function updateLocalProfile(profile: LocalProfile, changes: Partial<LocalProfile["answers"]> & { name?: string }) {
+  const name = changes.name !== undefined ? changes.name.trim() : profile.name;
+  const { name: _, ...answersChanges } = changes;
+  const updated: LocalProfile = { 
+    ...profile, 
+    name,
+    initials: initials(name),
+    answers: { ...profile.answers, ...answersChanges } 
+  };
   if (!isTauri()) {
     saveWebProfiles(loadWebProfiles().map((item) => item.id === profile.id ? updated : item));
     return updated;
   }
   const db = await database();
   const now = new Date().toISOString();
-  await db.execute("UPDATE profiles SET base_currency = $1, updated_at = $2 WHERE id = $3", [updated.answers.currency, now, profile.id]);
+  await db.execute("UPDATE profiles SET display_name = $1, base_currency = $2, updated_at = $3 WHERE id = $4", [updated.name, updated.answers.currency, now, profile.id]);
   await db.execute(
     `INSERT INTO profile_preferences (profile_id, theme, experience_level, primary_goal, tracked_assets_json, preferences_json, updated_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7)

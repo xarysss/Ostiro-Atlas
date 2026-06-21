@@ -19,6 +19,11 @@ export interface OnboardingAnswers {
   backupPath: string;
   encryptedBackup: boolean;
   protectionEnabled: boolean;
+  offlineMode?: boolean;
+  telemetry?: boolean;
+  checkForUpdates?: boolean;
+  autoLock?: boolean;
+  confirmExports?: boolean;
 }
 
 export interface LocalProfile {
@@ -57,6 +62,11 @@ export const defaultAnswers: OnboardingAnswers = {
   backupPath: "Ostiro/Backups",
   encryptedBackup: false,
   protectionEnabled: false,
+  offlineMode: true,
+  telemetry: false,
+  checkForUpdates: true,
+  autoLock: false,
+  confirmExports: true,
 };
 
 export const demoProfile: LocalProfile = {

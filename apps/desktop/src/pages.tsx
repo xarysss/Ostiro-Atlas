@@ -36,7 +36,7 @@ import {
   WifiOff,
   CheckCircle2
 } from "lucide-react";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { previewCsv, type ImportPreview, type ImportedRow } from "@ostiro/importers";
 import type { ReliabilityStatus } from "@ostiro/shared";
 import { experienceLabels, goalLabels, type LocalProfile } from "./profile-types";
@@ -1074,14 +1074,150 @@ export function ExportsPage() {
   return <><PageTitle eyebrow="Portabilité" title="Exports & sauvegardes" detail="Vos données vous appartiennent, dans des formats lisibles et documentés."/><div className="export-grid"><Section title="Export de données" subtitle="JSON structuré, sans dépendance à Ostiro"><div className="export-card"><span><Download size={22}/></span><div><strong>Export complet JSON</strong><p>Comptes, transactions, sources, calculs et journal d'audit.</p></div><button className="primary-button" onClick={exportDemo}>Exporter la démo</button></div><div className="export-card"><span><FileArchive size={22}/></span><div><strong>Exports CSV par table</strong><p>Formats simples pour Excel, LibreOffice ou un autre outil.</p></div><button className="secondary-button" disabled>V0.2</button></div></Section><Section title="Sauvegarde locale" subtitle="Base, pièces jointes et manifeste de version"><div className="export-card"><span><HardDrive size={22}/></span><div><strong>Sauvegarde `.owb`</strong><p>Archive complète avec contrôle d'intégrité.</p></div><button className="secondary-button" disabled>V0.2</button></div><div className="export-card"><span><LockKeyhole size={22}/></span><div><strong>Chiffrement par mot de passe</strong><p>Argon2id + chiffrement authentifié, prévu avant la V1.</p></div><button className="secondary-button" disabled>V0.3</button></div></Section></div></>;
 }
 
-export function SettingsPage({ profile, onSwitchProfile, onDeveloper, onUpdateProfile }: { profile: LocalProfile; onSwitchProfile: () => void; onDeveloper: () => void; onUpdateProfile: (changes: Partial<LocalProfile["answers"]>) => void }) {
+export function SettingsPage({ 
+  profile, 
+  onSwitchProfile, 
+  onDeveloper, 
+  onUpdateProfile,
+  onExportBackup,
+  onImportBackup
+}: { 
+  profile: LocalProfile; 
+  onSwitchProfile: () => void; 
+  onDeveloper: () => void; 
+  onUpdateProfile: (changes: Partial<LocalProfile["answers"]> & { name?: string }) => void;
+  onExportBackup: () => void;
+  onImportBackup: () => void;
+}) {
+  const [name, setName] = useState(profile.name);
+
+  useEffect(() => {
+    setName(profile.name);
+  }, [profile.name]);
+
+  const handleNameBlur = () => {
+    if (name.trim() && name !== profile.name) {
+      onUpdateProfile({ name: name.trim() });
+    }
+  };
+
+  const handleNameKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" && name.trim() && name !== profile.name) {
+      onUpdateProfile({ name: name.trim() });
+      event.currentTarget.blur();
+    }
+  };
+
   return <><PageTitle eyebrow="Préférences" title="Paramètres" detail="Profil, apparence, sauvegardes et confidentialité locale." action={<button className="secondary-button" onClick={onSwitchProfile}><UserRound size={16}/> Changer de profil</button>}/><div className="settings-grid">
-    <Section title="Profil local" subtitle="Aucun compte en ligne"><label className="field"><span>Nom affiché</span><input value={profile.name} readOnly/></label><label className="field"><span>Devise principale</span><select value={profile.answers.currency} onChange={(event) => onUpdateProfile({currency:event.target.value})}><option>EUR</option><option>USD</option><option>GBP</option><option>CHF</option></select></label><label className="field"><span>Thème</span><select value={profile.answers.theme} onChange={(event) => onUpdateProfile({theme:event.target.value as LocalProfile["answers"]["theme"]})}><option value="dark">Sombre</option><option value="light">Clair</option><option value="system">Système</option></select></label></Section>
-    <Section title="Sauvegardes" subtitle="Automatiques dans le dossier applicatif"><div className="settings-actions"><button><HardDrive size={18}/><span><strong>Créer une sauvegarde complète</strong><small>Archive locale exportable</small></span><ChevronRight/></button><button><Upload size={18}/><span><strong>Restaurer une sauvegarde</strong><small>Profil ou fichier `.ostiro-backup`</small></span><ChevronRight/></button><button><FolderOpen size={18}/><span><strong>Changer l'emplacement</strong><small>Disque externe ou dossier synchronisé</small></span><ChevronRight/></button></div></Section>
-    <Section title="Vie privée" subtitle="Contrôle des fonctions réseau"><Toggle icon={WifiOff} title="Mode totalement hors ligne" detail="Bloque toutes les requêtes réseau optionnelles" checked/><Toggle icon={Fingerprint} title="Télémétrie" detail="Désactivée par défaut; aucune mesure n'est envoyée"/><Toggle icon={RefreshCw} title="Vérifier les mises à jour" detail="Interroge GitHub Releases au lancement"/></Section>
-    <Section title="Sécurité locale" subtitle={profile.isProtected ? "Ce profil est protégé" : "Protection facultative"}><Toggle icon={LockKeyhole} title="Verrouillage automatique" detail="Verrouiller après 10 minutes d'inactivité" checked={profile.isProtected}/><Toggle icon={ShieldCheck} title="Confirmer les exports" detail="Demander une validation avant toute sortie de données" checked/></Section>
-    <Section title="Outils avancés" subtitle="Tests et maintenance locale"><div className="settings-actions"><button onClick={onDeveloper}><Code2 size={18}/><span><strong>Mode développeur</strong><small>Scénarios démo, Onboarding et données manquantes</small></span><ChevronRight/></button>{profile.isDemo && <button><RotateCcw size={18}/><span><strong>Réinitialiser le compte démo</strong><small>Restaurer les données fictives initiales</small></span><ChevronRight/></button>}</div></Section>
-    <Section title="À propos"><div className="about-mark"><span className="brand__mark"><span/><span/><span/></span><div><strong>Ostiro Atlas 0.3.0</strong><small>AGPL-3.0 · local-first</small></div></div><p className="legal-note">Ostiro fournit des analyses et estimations pédagogiques. Il ne fournit ni conseil en investissement personnalisé, ni conseil fiscal officiel.</p></Section>
+    <Section title="Profil local" subtitle="Aucun compte en ligne">
+      <label className="field">
+        <span>Nom affiché</span>
+        <input 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          onBlur={handleNameBlur}
+          onKeyDown={handleNameKeyDown}
+        />
+      </label>
+      <label className="field">
+        <span>Devise principale</span>
+        <select value={profile.answers.currency} onChange={(event) => onUpdateProfile({currency:event.target.value})}>
+          <option>EUR</option>
+          <option>USD</option>
+          <option>GBP</option>
+          <option>CHF</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>Thème</span>
+        <select value={profile.answers.theme} onChange={(event) => onUpdateProfile({theme:event.target.value as LocalProfile["answers"]["theme"]})}>
+          <option value="dark">Sombre</option>
+          <option value="light">Clair</option>
+          <option value="system">Système</option>
+        </select>
+      </label>
+    </Section>
+    <Section title="Sauvegardes" subtitle="Automatiques dans le dossier applicatif">
+      <div className="settings-actions">
+        <button onClick={onExportBackup}>
+          <HardDrive size={18}/>
+          <span><strong>Créer une sauvegarde complète</strong><small>Archive locale exportable (profil + transactions)</small></span>
+          <ChevronRight/>
+        </button>
+        <button onClick={onImportBackup}>
+          <Upload size={18}/>
+          <span><strong>Restaurer une sauvegarde</strong><small>Importer un profil ou fichier `.json`</small></span>
+          <ChevronRight/>
+        </button>
+        <button onClick={() => window.alert("L'emplacement de stockage par défaut est géré par la base locale d'Ostiro sur votre disque principal.")}>
+          <FolderOpen size={18}/>
+          <span><strong>Changer l'emplacement</strong><small>Stockage local par défaut</small></span>
+          <ChevronRight/>
+        </button>
+      </div>
+    </Section>
+    <Section title="Vie privée" subtitle="Contrôle des fonctions réseau">
+      <Toggle 
+        icon={WifiOff} 
+        title="Mode totalement hors ligne" 
+        detail="Bloque toutes les requêtes réseau optionnelles" 
+        checked={profile.answers.offlineMode ?? true}
+        onChange={(checked) => onUpdateProfile({ offlineMode: checked })}
+      />
+      <Toggle 
+        icon={Fingerprint} 
+        title="Télémétrie" 
+        detail="Désactivée par défaut; aucune mesure n'est envoyée" 
+        checked={profile.answers.telemetry ?? false}
+        onChange={(checked) => onUpdateProfile({ telemetry: checked })}
+      />
+      <Toggle 
+        icon={RefreshCw} 
+        title="Vérifier les mises à jour" 
+        detail="Interroge GitHub Releases au lancement" 
+        checked={profile.answers.checkForUpdates ?? true}
+        onChange={(checked) => onUpdateProfile({ checkForUpdates: checked })}
+      />
+    </Section>
+    <Section title="Sécurité locale" subtitle={profile.isProtected ? "Ce profil est protégé" : "Protection facultative"}>
+      <Toggle 
+        icon={LockKeyhole} 
+        title="Verrouillage automatique" 
+        detail="Verrouiller après 10 minutes d'inactivité" 
+        checked={profile.answers.autoLock ?? false}
+        onChange={(checked) => onUpdateProfile({ autoLock: checked })}
+      />
+      <Toggle 
+        icon={ShieldCheck} 
+        title="Confirmer les exports" 
+        detail="Demander une validation avant toute sortie de données" 
+        checked={profile.answers.confirmExports ?? true}
+        onChange={(checked) => onUpdateProfile({ confirmExports: checked })}
+      />
+    </Section>
+    <Section title="Outils avancés" subtitle="Tests et maintenance locale">
+      <div className="settings-actions">
+        <button onClick={onDeveloper}>
+          <Code2 size={18}/>
+          <span><strong>Mode développeur</strong><small>Scénarios démo, Onboarding et données manquantes</small></span>
+          <ChevronRight/>
+        </button>
+        {profile.isDemo && (
+          <button onClick={() => window.alert("Les profils de démonstration sont réinitialisés au redémarrage.")}>
+            <RotateCcw size={18}/>
+            <span><strong>Réinitialiser le compte démo</strong><small>Restaurer les données fictives initiales</small></span>
+            <ChevronRight/>
+          </button>
+        )}
+      </div>
+    </Section>
+    <Section title="À propos">
+      <div className="about-mark">
+        <span className="brand__mark"><span/><span/><span/></span>
+        <div><strong>Ostiro Atlas 0.3.0</strong><small>AGPL-3.0 · local-first</small></div>
+      </div>
+      <p className="legal-note">Ostiro fournit des analyses et estimations pédagogiques. Il ne fournit ni conseil en investissement personnalisé, ni conseil fiscal officiel.</p>
+    </Section>
   </div></>;
 }
 
@@ -1089,6 +1225,6 @@ function PageTitle({ eyebrow, title, detail, action }: { eyebrow: string; title:
   return <div className="page-title"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{detail}</p></div>{action && <div className="page-title__actions">{action}</div>}</div>;
 }
 
-function Toggle({ icon: Icon, title, detail, checked = false }: { icon: typeof Sparkles; title: string; detail: string; checked?: boolean }) {
-  return <label className="toggle-row"><span><Icon size={18}/></span><span><strong>{title}</strong><small>{detail}</small></span><input type="checkbox" defaultChecked={checked}/><i/></label>;
+function Toggle({ icon: Icon, title, detail, checked = false, onChange }: { icon: typeof Sparkles; title: string; detail: string; checked?: boolean; onChange?: (checked: boolean) => void }) {
+  return <label className="toggle-row"><span><Icon size={18}/></span><span><strong>{title}</strong><small>{detail}</small></span><input type="checkbox" checked={checked} onChange={(e) => onChange?.(e.target.checked)}/><i/></label>;
 }

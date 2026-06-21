@@ -123,10 +123,34 @@ export default function App() {
     input.onchange = async () => {
       const file = input.files?.[0]; if (!file) return;
       try {
-        const profile = JSON.parse(await file.text()) as LocalProfile;
-        await createLocalProfile({ ...defaultAnswers, ...profile.answers, name: `${profile.name} restauré`, secret: "", protectionEnabled: false });
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        
+        // Support both old profile backup format and new complete backup format
+        const profileObj = parsed.profile ? parsed.profile : parsed;
+        const portfolioObj = parsed.portfolioData ? parsed.portfolioData : null;
+        
+        if (!profileObj || typeof profileObj !== "object" || !profileObj.name) {
+          throw new Error("Format de sauvegarde invalide");
+        }
+        
+        const created = await createLocalProfile({ 
+          ...defaultAnswers, 
+          ...profileObj.answers, 
+          name: `${profileObj.name} restauré`, 
+          secret: "", 
+          protectionEnabled: false 
+        });
+        
+        if (portfolioObj) {
+          await savePortfolioData(created, portfolioObj);
+        }
+        
         await refreshProfiles();
-      } catch { window.alert("Cette sauvegarde n'est pas un profil Ostiro lisible."); }
+      } catch (err) { 
+        console.error(err);
+        window.alert("Cette sauvegarde n'est pas un profil Ostiro lisible."); 
+      }
     };
     input.click();
   };
@@ -202,7 +226,26 @@ export default function App() {
     tools: <ToolsPage defaultTab={toolsTab} />,
     exports: <ExportsPage />,
     "complete-wealth": <CompleteWealthPage profile={profile} data={portfolioData} onSaveData={handleSavePortfolioData} navigate={navigate} />,
-    settings: <SettingsPage profile={profile} onSwitchProfile={() => { void refreshProfiles(); setScreen("profiles"); }} onDeveloper={() => setScreen("developer")} onUpdateProfile={(changes) => void updateLocalProfile(profile,changes).then(setActiveProfile)} />,
+    settings: (
+      <SettingsPage 
+        profile={profile} 
+        onSwitchProfile={() => { void refreshProfiles(); setScreen("profiles"); }} 
+        onDeveloper={() => setScreen("developer")} 
+        onUpdateProfile={(changes) => void updateLocalProfile(profile, changes).then(setActiveProfile)} 
+        onExportBackup={() => {
+          const backupObj = { profile, portfolioData };
+          const json = JSON.stringify(backupObj, null, 2);
+          const blob = new Blob([json], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${profile.name.toLowerCase().replace(/\s+/g, "_")}_backup.json`;
+          link.click();
+          URL.revokeObjectURL(url);
+        }}
+        onImportBackup={importBackup}
+      />
+    ),
   }[page];
 
   return <div className="app-shell">
