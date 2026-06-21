@@ -1,0 +1,28 @@
+name: Fonctionnalité
+description: Proposer une amélioration compatible avec la roadmap
+title: "[Feature] "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème utilisateur
+      description: Décrivez le besoin, pas seulement une solution.
+    validations:
+      required: true
+  - type: textarea
+    id: reliability
+    attributes:
+      label: Sources et impact sur la fiabilité
+      description: Quelles données, hypothèses et erreurs faut-il rendre visibles ?
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Contraintes
+      options:
+        - label: La fonction principale peut fonctionner localement.
+          required: true
+        - label: Elle ne nécessite pas de donnée financière réelle dans l'issue.
+          required: true

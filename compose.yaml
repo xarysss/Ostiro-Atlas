@@ -1,0 +1,11 @@
+services:
+  ostiro-preview:
+    build:
+      context: .
+    ports:
+      - "1420:8080"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    restart: unless-stopped

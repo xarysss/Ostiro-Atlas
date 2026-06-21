@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ink" x1="72" y1="56" x2="432" y2="456" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#242142"/>
+      <stop offset="1" stop-color="#0B0B14"/>
+    </linearGradient>
+    <linearGradient id="needle" x1="256" y1="110" x2="256" y2="401" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7B36A"/>
+      <stop offset="0.5" stop-color="#D7B36A"/>
+      <stop offset="0.501" stop-color="#8F85FF"/>
+      <stop offset="1" stop-color="#8F85FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="url(#ink)"/>
+  <circle cx="256" cy="256" r="158" stroke="#8F85FF" stroke-width="18"/>
+  <circle cx="256" cy="256" r="123" stroke="#D7B36A" stroke-opacity="0.34" stroke-width="4" stroke-dasharray="8 14"/>
+  <path d="M256 92L301 244L256 420L211 268L256 92Z" fill="url(#needle)"/>
+  <circle cx="256" cy="256" r="24" fill="#F1F3EF"/>
+  <circle cx="256" cy="256" r="10" fill="#0A1A20"/>
+</svg>

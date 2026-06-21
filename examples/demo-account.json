@@ -1,0 +1,31 @@
+{
+  "format": "ostiro-demo",
+  "version": 1,
+  "generatedAt": "2026-06-20T18:42:00+02:00",
+  "notice": "Toutes les personnes, institutions et valeurs sont fictives.",
+  "profile": {
+    "name": "Jeanne Dupont",
+    "baseCurrency": "EUR",
+    "locale": "fr-FR"
+  },
+  "accounts": [
+    { "name": "Compte courant", "type": "checking", "value": 5760, "currency": "EUR", "reliability": "verified" },
+    { "name": "Livret A", "type": "savings", "value": 23000, "currency": "EUR", "reliability": "verified" },
+    { "name": "PEA Horizon", "type": "pea", "value": 128420, "currency": "EUR", "reliability": "verified" },
+    { "name": "CTO Monde", "type": "brokerage", "value": 86540, "currency": "EUR", "reliability": "reliable" },
+    { "name": "Portefeuille crypto", "type": "crypto", "value": 18130, "currency": "EUR", "reliability": "partial" },
+    { "name": "Appartement Lyon", "type": "real_estate", "value": 245000, "currency": "EUR", "reliability": "estimated" },
+    { "name": "Crédit immobilier", "type": "mortgage", "value": -85000, "currency": "EUR", "reliability": "reliable" }
+  ],
+  "budget": {
+    "monthlyIncome": 3150,
+    "fixedExpenses": 1398,
+    "variableExpenses": 752,
+    "monthlySavings": 1000
+  },
+  "dataHealth": {
+    "score": 86,
+    "missing": ["Historique crypto antérieur au 18 juin 2024"],
+    "estimated": ["Valeur immobilière", "Deux taux USD/EUR"]
+  }
+}
