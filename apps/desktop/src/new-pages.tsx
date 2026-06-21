@@ -264,9 +264,14 @@ export function BudgetPage({ data }: PageProps) {
   );
 }
 
-// Interactive Simulators Page
-export function ToolsPage() {
-  const [activeTab, setActiveTab] = useState("patrimoine");
+export function ToolsPage({ defaultTab }: { defaultTab?: string }) {
+  const [activeTab, setActiveTab] = useState(defaultTab || "patrimoine");
+
+  React.useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
 
   // State values for various calculators
   const [initialCapital, setInitialCapital] = useState("10000");
