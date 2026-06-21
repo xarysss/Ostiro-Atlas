@@ -43,6 +43,16 @@ export default function App() {
     }
   };
 
+  const hasNotice = activeProfile?.isDemo ? notice : portfolioData.dataIssues.length > 0;
+
+  const handleBellClick = () => {
+    if (activeProfile && !activeProfile.isDemo && portfolioData.dataIssues.length > 0) {
+      setPage("data-health");
+    } else if (activeProfile?.isDemo) {
+      setNotice(!notice);
+    }
+  };
+
   useEffect(() => {
     if (activeProfile) {
       void getPortfolioData(activeProfile).then(setPortfolioData);
@@ -224,7 +234,7 @@ export default function App() {
     "data-health": <DataHealthPage data={portfolioData} navigate={navigate} />,
     "sync-health": <SyncHealthPage />,
     tools: <ToolsPage defaultTab={toolsTab} />,
-    exports: <ExportsPage />,
+    exports: <ExportsPage profile={profile} data={portfolioData} />,
     "complete-wealth": <CompleteWealthPage profile={profile} data={portfolioData} onSaveData={handleSavePortfolioData} navigate={navigate} />,
     settings: (
       <SettingsPage 
@@ -353,7 +363,7 @@ export default function App() {
           </div>
         )}
       </div>
-      <div className="topbar-actions">{profile.isDemo && <span className="demo-pill">DÉMO</span>}<span className="active-profile-chip">{profile.initials}</span><button className="icon-button" aria-label="Thème" onClick={toggleTheme}>{profile.answers.theme === "light" ? <Moon size={18}/> : <Sun size={18}/>}</button><button className="icon-button icon-button--notice" aria-label="Notifications"><Bell size={18}/>{notice && <i/>}</button></div></header>
+      <div className="topbar-actions">{profile.isDemo && <span className="demo-pill">DÉMO</span>}<span className="active-profile-chip">{profile.initials}</span><button className="icon-button" aria-label="Thème" onClick={toggleTheme}>{profile.answers.theme === "light" ? <Moon size={18}/> : <Sun size={18}/>}</button><button className="icon-button icon-button--notice" aria-label="Notifications" onClick={handleBellClick}><Bell size={18}/>{hasNotice && <i/>}</button></div></header>
       {notice && profile.isDemo && <div className="demo-banner"><span>Vous explorez un patrimoine fictif. Aucun compte réel n'est connecté.</span><button onClick={() => setNotice(false)}>Masquer</button></div>}
       <main className="content">{content}</main>
     </div><TraceDrawer trace={trace} onClose={() => setTrace(null)}/>

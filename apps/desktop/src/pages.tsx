@@ -1065,13 +1065,20 @@ export function ImportPage({ data, onSaveData, navigate }: { data: PortfolioData
   );
 }
 
-export function ExportsPage() {
-  const exportDemo = () => {
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), demo: true }, null, 2)], { type: "application/json" });
+export function ExportsPage({ profile, data }: { profile: LocalProfile; data: PortfolioData }) {
+  const exportData = () => {
+    const exportObj = profile.isDemo
+      ? { exportedAt: new Date().toISOString(), demo: true }
+      : { exportedAt: new Date().toISOString(), profile: { name: profile.name, answers: profile.answers }, data };
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a"); link.href = url; link.download = "ostiro-demo-export.json"; link.click(); URL.revokeObjectURL(url);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = profile.isDemo ? "ostiro-demo-export.json" : `${profile.name.toLowerCase().replace(/\s+/g, "_")}_export.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
-  return <><PageTitle eyebrow="Portabilité" title="Exports & sauvegardes" detail="Vos données vous appartiennent, dans des formats lisibles et documentés."/><div className="export-grid"><Section title="Export de données" subtitle="JSON structuré, sans dépendance à Ostiro"><div className="export-card"><span><Download size={22}/></span><div><strong>Export complet JSON</strong><p>Comptes, transactions, sources, calculs et journal d'audit.</p></div><button className="primary-button" onClick={exportDemo}>Exporter la démo</button></div><div className="export-card"><span><FileArchive size={22}/></span><div><strong>Exports CSV par table</strong><p>Formats simples pour Excel, LibreOffice ou un autre outil.</p></div><button className="secondary-button" disabled>V0.2</button></div></Section><Section title="Sauvegarde locale" subtitle="Base, pièces jointes et manifeste de version"><div className="export-card"><span><HardDrive size={22}/></span><div><strong>Sauvegarde `.owb`</strong><p>Archive complète avec contrôle d'intégrité.</p></div><button className="secondary-button" disabled>V0.2</button></div><div className="export-card"><span><LockKeyhole size={22}/></span><div><strong>Chiffrement par mot de passe</strong><p>Argon2id + chiffrement authentifié, prévu avant la V1.</p></div><button className="secondary-button" disabled>V0.3</button></div></Section></div></>;
+  return <><PageTitle eyebrow="Portabilité" title="Exports & sauvegardes" detail="Vos données vous appartiennent, dans des formats lisibles et documentés."/><div className="export-grid"><Section title="Export de données" subtitle="JSON structuré, sans dépendance à Ostiro"><div className="export-card"><span><Download size={22}/></span><div><strong>Export complet JSON</strong><p>Comptes, transactions, sources, calculs et journal d'audit.</p></div><button className="primary-button" onClick={exportData}>{profile.isDemo ? "Exporter la démo" : "Exporter mes données"}</button></div><div className="export-card"><span><FileArchive size={22}/></span><div><strong>Exports CSV par table</strong><p>Formats simples pour Excel, LibreOffice ou un autre outil.</p></div><button className="secondary-button" disabled>V0.2</button></div></Section><Section title="Sauvegarde locale" subtitle="Base, pièces jointes et manifeste de version"><div className="export-card"><span><HardDrive size={22}/></span><div><strong>Sauvegarde `.owb`</strong><p>Archive complète avec contrôle d'intégrité.</p></div><button className="secondary-button" disabled>V0.2</button></div><div className="export-card"><span><LockKeyhole size={22}/></span><div><strong>Chiffrement par mot de passe</strong><p>Argon2id + chiffrement authentifié, prévu avant la V1.</p></div><button className="secondary-button" disabled>V0.3</button></div></Section></div></>;
 }
 
 export function SettingsPage({ 
