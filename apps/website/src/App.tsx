@@ -10,6 +10,7 @@ import markLogo from "./assets/ostiro-mark.png";
 
 const downloadUrl = "https://github.com/xarysss/Ostiro-Atlas/releases/latest/download/OstiroAtlas-Setup.exe";
 const githubUrl = "https://github.com/xarysss/Ostiro-Atlas";
+const siteBase = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type VisualKind = "features" | "wealth" | "portfolio" | "budget" | "dividends" | "fees" |
   "reliability" | "security" | "local" | "csv" | "simulator" | "pricing" | "download" | "guide";
@@ -198,9 +199,13 @@ const pages: PageDefinition[] = [
 ];
 
 function usePathname() {
-  const [pathname, setPathname] = useState(window.location.pathname.replace(/\/$/, "") || "/");
+  const currentPath = () => {
+    const rawPath = window.location.pathname.replace(/\/$/, "") || "/";
+    return siteBase && rawPath.startsWith(siteBase) ? rawPath.slice(siteBase.length) || "/" : rawPath;
+  };
+  const [pathname, setPathname] = useState(currentPath);
   useEffect(() => {
-    const onPopState = () => setPathname(window.location.pathname.replace(/\/$/, "") || "/");
+    const onPopState = () => setPathname(currentPath());
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
@@ -209,11 +214,12 @@ function usePathname() {
 
 function SiteLink({ href, children, className = "", onClick }: { href: string; children: ReactNode; className?: string; onClick?: () => void }) {
   const external = href.startsWith("http") || href.startsWith("mailto:");
-  return <a className={className} href={href} onClick={(event) => {
+  const resolvedHref = external ? href : `${siteBase}${href}`;
+  return <a className={className} href={resolvedHref} onClick={(event) => {
     onClick?.();
     if (!external && !event.ctrlKey && !event.metaKey) {
       event.preventDefault();
-      window.history.pushState({}, "", href);
+      window.history.pushState({}, "", resolvedHref);
       window.dispatchEvent(new PopStateEvent("popstate"));
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
