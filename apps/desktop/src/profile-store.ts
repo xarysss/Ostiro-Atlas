@@ -1,5 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
 import { DATABASE_URL } from "@ostiro/database";
+import { PUBLIC_BUILD } from "./build-mode";
 import { demoProfile, initials, type LocalProfile, type ProfileDraft } from "./profile-types";
 
 const STORAGE_KEY = "ostiro.local-profiles.v1";
@@ -11,9 +12,10 @@ function isTauri() {
 function loadWebProfiles(): LocalProfile[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as LocalProfile[];
-    return [demoProfile, ...parsed.filter((profile) => !profile.isDemo && profile.id !== demoProfile.id)];
+    const localProfiles = parsed.filter((profile) => !profile.isDemo && profile.id !== demoProfile.id);
+    return PUBLIC_BUILD ? localProfiles : [demoProfile, ...localProfiles];
   } catch {
-    return [demoProfile];
+    return PUBLIC_BUILD ? [] : [demoProfile];
   }
 }
 
@@ -64,6 +66,7 @@ export async function listLocalProfiles(): Promise<LocalProfile[]> {
       answers: stored,
     };
   });
+  if (PUBLIC_BUILD) return profiles.filter((profile) => !profile.isDemo && profile.id !== demoProfile.id);
   return profiles.some((profile) => profile.id === demoProfile.id) ? profiles : [demoProfile, ...profiles];
 }
 

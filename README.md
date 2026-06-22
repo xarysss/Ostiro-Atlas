@@ -4,7 +4,7 @@
 
 Ostiro Atlas est une application desktop open source, locale et gratuite pour suivre son patrimoine sans compte cloud. Elle privilégie la fiabilité des données : chaque chiffre calculé expose sa source, sa date, son niveau de confiance, sa formule et ses éventuelles limites.
 
-## Ce qui fonctionne dans la V0.3
+## Ce qui fonctionne dans la V0.4
 
 - application desktop Tauri 2, React et TypeScript ;
 - écran d'accueil local-first avant le dashboard ;
@@ -22,6 +22,17 @@ Ostiro Atlas est une application desktop open source, locale et gratuite pour su
 - builds Windows NSIS (`.exe`) et MSI préparés dans GitHub Actions.
 
 La V1 reste volontairement limitée à l'ajout manuel, l'import CSV, les calculs fiables, les dividendes, les frais, les exports, les sauvegardes et la documentation. Les connexions bancaires, le cloud, le mobile, les transactions crypto et le conseil personnalisé sont hors périmètre.
+
+Le build distribue par `pnpm installer` est un build public : il conserve le tutoriel de creation de profil, mais masque le compte de demonstration et tous les outils developpeur. La recherche sur les connexions bancaires locales est documentee dans [docs/OPEN_BANKING_RESEARCH.md](docs/OPEN_BANKING_RESEARCH.md).
+
+## Site marketing
+
+Le site public se trouve dans `apps/website`. Il contient quinze routes produit, securite, documentation, tarifs et telechargement.
+
+```bash
+pnpm website:dev
+pnpm website:build
+```
 
 ## Démarrage
 
@@ -54,11 +65,14 @@ Une prévisualisation web du compte démo peut aussi être lancée avec `docker 
 | `pnpm build` | Construit les packages et le frontend |
 | `pnpm desktop:build` | Produit les installateurs Windows |
 | `pnpm installer` | Produit `artifacts/OstiroAtlas-Setup.exe` prêt à distribuer |
+| `pnpm website:dev` | Lance le site marketing sur `http://127.0.0.1:4173` |
+| `pnpm website:build` | Construit les quinze pages statiques du site |
 
 ## Architecture
 
 ```text
 apps/desktop                 Application Tauri + React
+apps/website                 Site marketing React + Vite, quinze pages
 packages/finance-engine     Calculs purs, documentés et testés
 packages/database           Schéma SQLite, migrations et accès local
 packages/shared             Contrats de données, fiabilité et audit

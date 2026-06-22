@@ -1,10 +1,11 @@
-import { Bell, Command, Moon, Search, Sun } from "lucide-react";
+import { Bell, Command, Moon, Search, Sun, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TraceDrawer, type TraceInfo } from "./components";
 import { initializeLocalDatabase } from "./database";
 import {
-  DeveloperScreen, OnboardingFlow, ProfilesScreen, UnlockScreen, WelcomeScreen,
+  DeveloperScreen, ProfilesScreen, UnlockScreen, WelcomeScreen,
 } from "./profile-flow";
+import { OnboardingFlow } from "./quick-onboarding";
 import {
   createLocalProfile, deleteProfile, duplicateProfile, listLocalProfiles, markProfileOpened, updateLocalProfile, verifyProfileSecret,
 } from "./profile-store";
@@ -16,7 +17,8 @@ import {
 import { Sidebar, type PageId } from "./sidebar";
 import { getPortfolioData, savePortfolioData, emptyPortfolio, type PortfolioData } from "./data-store";
 import { CompleteWealthPage } from "./complete-wealth";
-import { AnalysisPage, BudgetPage, ToolsPage } from "./new-pages";
+import { AnalysisPage, BudgetPage, ToolsPage, DeclarationPatrimoinePage } from "./new-pages";
+import { PUBLIC_BUILD } from "./build-mode";
 
 type AppScreen = "welcome" | "profiles" | "unlock" | "onboarding" | "developer" | "app";
 
@@ -25,7 +27,7 @@ export default function App() {
   const [page, setPage] = useState<PageId>("overview");
   const [trace, setTrace] = useState<TraceInfo | null>(null);
   const [notice, setNotice] = useState(true);
-  const [profiles, setProfiles] = useState<LocalProfile[]>([demoProfile]);
+  const [profiles, setProfiles] = useState<LocalProfile[]>(PUBLIC_BUILD ? [] : [demoProfile]);
   const [profilesLoading, setProfilesLoading] = useState(true);
   const [activeProfile, setActiveProfile] = useState<LocalProfile | null>(null);
   const [lockedProfile, setLockedProfile] = useState<LocalProfile | null>(null);
@@ -33,6 +35,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [toolsTab, setToolsTab] = useState("patrimoine");
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const toggleTheme = async () => {
     if (activeProfile) {
@@ -165,11 +168,13 @@ export default function App() {
     input.click();
   };
 
-  if (screen === "welcome") return <WelcomeScreen onCreate={() => setScreen("onboarding")} onProfiles={() => {void refreshProfiles();setScreen("profiles");}} onDemo={() => void enterProfile(demoProfile)} onDeveloper={() => setScreen("developer")}/>;
-  if (screen === "profiles") return <ProfilesScreen profiles={profiles} loading={profilesLoading} onBack={() => setScreen("welcome")} onCreate={() => setScreen("onboarding")} onOpen={requestOpen} onDemo={() => void enterProfile(demoProfile)} onImport={importBackup} onDuplicate={(profile) => void duplicateProfile(profile).then(refreshProfiles)} onDelete={(profile) => { if (window.confirm(`Supprimer le profil ${profile.name} ?`)) void deleteProfile(profile).then(refreshProfiles); }}/>;
+  if (screen === "welcome") return <WelcomeScreen onCreate={() => setScreen("onboarding")} onProfiles={() => {void refreshProfiles();setScreen("profiles");}} onDemo={() => void enterProfile(demoProfile)} onDeveloper={() => setScreen("developer")} showDemo={!PUBLIC_BUILD} showDeveloper={!PUBLIC_BUILD}/>;
+  if (screen === "profiles") return <ProfilesScreen profiles={profiles} loading={profilesLoading} onBack={() => setScreen("welcome")} onCreate={() => setScreen("onboarding")} onOpen={requestOpen} onDemo={() => void enterProfile(demoProfile)} onImport={importBackup} onDuplicate={(profile) => void duplicateProfile(profile).then(refreshProfiles)} onDelete={(profile) => { if (window.confirm(`Supprimer le profil ${profile.name} ?`)) void deleteProfile(profile).then(refreshProfiles); }} showDemo={!PUBLIC_BUILD}/>;
   if (screen === "onboarding") return <OnboardingFlow onCancel={() => setScreen("welcome")} onComplete={completeOnboarding}/>;
   if (screen === "unlock" && lockedProfile) return <UnlockScreen profile={lockedProfile} onBack={() => setScreen("profiles")} onUnlock={async (secret) => { const valid=await verifyProfileSecret(lockedProfile,secret); if(valid) await enterProfile(lockedProfile); return valid; }}/>;
-  if (screen === "developer") return <DeveloperScreen onBack={() => setScreen("welcome")} onDemo={() => void enterProfile(demoProfile)} onBeginner={() => developerScenario("beginner")} onIntermediate={() => developerScenario("casual")} onAdvanced={() => developerScenario("advanced")} onOnboarding={() => setScreen("onboarding")} onReset={() => { localStorage.removeItem("ostiro.local-profiles.v1"); void refreshProfiles(); }} onToggleTheme={() => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light"; }}/>
+  if (screen === "developer") return PUBLIC_BUILD
+    ? <WelcomeScreen onCreate={() => setScreen("onboarding")} onProfiles={() => {void refreshProfiles();setScreen("profiles");}} onDemo={() => undefined} onDeveloper={() => undefined} showDemo={false} showDeveloper={false}/>
+    : <DeveloperScreen onBack={() => setScreen("welcome")} onDemo={() => void enterProfile(demoProfile)} onBeginner={() => developerScenario("beginner")} onIntermediate={() => developerScenario("casual")} onAdvanced={() => developerScenario("advanced")} onOnboarding={() => setScreen("onboarding")} onReset={() => { localStorage.removeItem("ostiro.local-profiles.v1"); void refreshProfiles(); }} onToggleTheme={() => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light"; }}/>
 
   const profile = activeProfile ?? demoProfile;
   const navigate = (target: string) => setPage(target as PageId);
@@ -222,10 +227,10 @@ export default function App() {
   const hasResults = results.accounts.length > 0 || results.positions.length > 0 || results.transactions.length > 0 || results.tools.length > 0;
 
   const content = {
-    overview: <DashboardPage inspect={setTrace} navigate={navigate} profile={profile} onOpenDemo={() => void enterProfile(demoProfile)} data={portfolioData} />,
-    accounts: <AccountsPage inspect={setTrace} data={portfolioData} navigate={navigate} />,
-    analysis: <AnalysisPage data={portfolioData} />,
-    budget: <BudgetPage data={portfolioData} />,
+    overview: <DashboardPage inspect={setTrace} navigate={navigate} profile={profile} onOpenDemo={() => void enterProfile(demoProfile)} data={portfolioData} isPrivate={isPrivate} allowDemo={!PUBLIC_BUILD} />,
+    accounts: <AccountsPage inspect={setTrace} data={portfolioData} navigate={navigate} isPrivate={isPrivate} />,
+    analysis: <AnalysisPage data={portfolioData} navigate={navigate} isPrivate={isPrivate} profile={profile} />,
+    budget: <BudgetPage data={portfolioData} navigate={navigate} isPrivate={isPrivate} />,
     portfolio: <PortfolioPage inspect={setTrace} data={portfolioData} navigate={navigate} />,
     transactions: <TransactionsPage data={portfolioData} />,
     dividends: <DividendsPage data={portfolioData} />,
@@ -235,6 +240,7 @@ export default function App() {
     "sync-health": <SyncHealthPage />,
     tools: <ToolsPage defaultTab={toolsTab} />,
     exports: <ExportsPage profile={profile} data={portfolioData} />,
+    "declaration-patrimoine": <DeclarationPatrimoinePage data={portfolioData} navigate={navigate} isPrivate={isPrivate} profile={profile} />,
     "complete-wealth": <CompleteWealthPage profile={profile} data={portfolioData} onSaveData={handleSavePortfolioData} navigate={navigate} />,
     settings: (
       <SettingsPage 
@@ -254,6 +260,7 @@ export default function App() {
           URL.revokeObjectURL(url);
         }}
         onImportBackup={importBackup}
+        showDeveloper={!PUBLIC_BUILD}
       />
     ),
   }[page];
@@ -261,12 +268,12 @@ export default function App() {
   return <div className="app-shell">
     <style>{`
       .search-row { transition: background 0.1s ease; color: var(--text); }
-      .search-row:hover { background: rgba(143, 133, 255, 0.1) !important; color: #fff !important; }
+      .search-row:hover { background: rgba(232, 192, 140, 0.08) !important; color: var(--text) !important; }
     `}</style>
     {isSearchFocused && (
       <div style={{ position: "fixed", inset: 0, zIndex: 998, background: "transparent" }} onClick={() => setIsSearchFocused(false)} />
     )}
-    <Sidebar page={page} profile={profile} onNavigate={setPage} onSwitchProfile={() => { void refreshProfiles(); setScreen("profiles"); }} onDeveloper={() => setScreen("developer")}/>
+    <Sidebar page={page} profile={profile} onNavigate={setPage} onSwitchProfile={() => { void refreshProfiles(); setScreen("profiles"); }} onDeveloper={() => setScreen("developer")} showDeveloper={!PUBLIC_BUILD}/>
     <div className="workspace"><header className="topbar">
       <div style={{ position: "relative", zIndex: 999 }}>
         <label className="topbar-search">
@@ -289,11 +296,11 @@ export default function App() {
             maxHeight: "350px",
             overflowY: "auto",
             zIndex: 999,
-            background: "rgba(20, 20, 33, 0.96)",
+            background: "var(--panel-solid)",
             border: "1px solid var(--line)",
-            borderRadius: "8px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
-            backdropFilter: "blur(12px)",
+            borderRadius: "16px",
+            boxShadow: "var(--shadow-card)",
+            backdropFilter: "blur(20px)",
             padding: "8px"
           }}>
             {!hasResults ? (
@@ -363,7 +370,19 @@ export default function App() {
           </div>
         )}
       </div>
-      <div className="topbar-actions">{profile.isDemo && <span className="demo-pill">DÉMO</span>}<span className="active-profile-chip">{profile.initials}</span><button className="icon-button" aria-label="Thème" onClick={toggleTheme}>{profile.answers.theme === "light" ? <Moon size={18}/> : <Sun size={18}/>}</button><button className="icon-button icon-button--notice" aria-label="Notifications" onClick={handleBellClick}><Bell size={18}/>{hasNotice && <i/>}</button></div></header>
+      <div className="topbar-actions">
+        {profile.isDemo && <span className="demo-pill">DÉMO</span>}
+        <span className="active-profile-chip">{profile.initials}</span>
+        <button className={isPrivate ? "icon-button privacy-toggle privacy-toggle--active" : "icon-button privacy-toggle"} aria-label={isPrivate ? "Afficher les montants" : "Masquer les montants"} aria-pressed={isPrivate} title={isPrivate ? "Afficher les montants" : "Masquer les montants"} onClick={() => setIsPrivate(!isPrivate)}>
+          {isPrivate ? <EyeOff size={18}/> : <Eye size={18}/>}
+        </button>
+        <button className="icon-button" aria-label="Thème" onClick={toggleTheme}>
+          {profile.answers.theme === "light" ? <Moon size={18}/> : <Sun size={18}/>}
+        </button>
+        <button className="icon-button icon-button--notice" aria-label="Notifications" onClick={handleBellClick}>
+          <Bell size={18}/>{hasNotice && <i/>}
+        </button>
+      </div></header>
       {notice && profile.isDemo && <div className="demo-banner"><span>Vous explorez un patrimoine fictif. Aucun compte réel n'est connecté.</span><button onClick={() => setNotice(false)}>Masquer</button></div>}
       <main className="content">{content}</main>
     </div><TraceDrawer trace={trace} onClose={() => setTrace(null)}/>

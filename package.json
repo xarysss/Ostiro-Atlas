@@ -1,6 +1,6 @@
 {
   "name": "ostiro-atlas",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "engines": {
@@ -10,6 +10,8 @@
     "dev": "pnpm --filter @ostiro/desktop dev",
     "desktop:dev": "pnpm --filter @ostiro/desktop tauri dev",
     "desktop:build": "pnpm --filter @ostiro/desktop tauri build",
+    "website:dev": "pnpm --filter @ostiro/website dev",
+    "website:build": "pnpm --filter @ostiro/website build",
     "installer": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
     "build": "pnpm -r --if-present build",
     "test": "pnpm -r --if-present test",

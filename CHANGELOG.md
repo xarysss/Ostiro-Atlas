@@ -11,6 +11,19 @@ Toutes les modifications notables sont documentées ici selon Keep a Changelog.
 - Moteur financier indépendant avec tests.
 - Compte de démonstration, dashboard et vues de santé des données.
 
+## [0.4.0] - 2026-06-21
+
+### Changed
+
+- Nouvelle direction artistique premium fondée sur le design system noir, or chaud et surfaces sobres.
+- Accueil et création de profil en split-screen avec aperçu produit en perspective.
+- Onboarding local ramené à deux écrans et navigation simplifiée.
+
+### Added
+
+- Vues Analyse, Budget Sankey, simulateur, déclaration imprimable et objets de valeur.
+- Mode privé global et sous-menu Outils en accordéon.
+
 ## [0.3.0] - 2026-06-21
 
 ### Changed

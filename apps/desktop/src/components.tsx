@@ -2,6 +2,31 @@ import type { LucideIcon } from "lucide-react";
 import { CheckCircle2, ChevronRight, CircleAlert, Database, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { reliabilityLabels, type ReliabilityStatus } from "@ostiro/shared";
+import ostiroAtlasWordmark from "./assets/brand/ostiro-atlas-wordmark.png";
+import ostiroMark from "./assets/brand/ostiro-mark.png";
+import ostiroWordmark from "./assets/brand/ostiro-wordmark.png";
+
+export function BrandLogo({
+  variant = "atlas",
+  className = "",
+}: {
+  variant?: "atlas" | "wordmark" | "mark";
+  className?: string;
+}) {
+  const source = variant === "mark"
+    ? ostiroMark
+    : variant === "wordmark"
+      ? ostiroWordmark
+      : ostiroAtlasWordmark;
+
+  return (
+    <img
+      className={`brand-logo brand-logo--${variant}${className ? ` ${className}` : ""}`}
+      src={source}
+      alt={variant === "atlas" ? "Ostiro Atlas" : "Ostiro"}
+    />
+  );
+}
 
 const euroFormatter = new Intl.NumberFormat("fr-FR", {
   style: "currency",

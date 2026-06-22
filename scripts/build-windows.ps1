@@ -1,3 +1,7 @@
+param(
+    [switch]$Developer
+)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -9,6 +13,7 @@ if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
 }
 
 Set-Location -LiteralPath $root
+$env:VITE_PUBLIC_BUILD = if ($Developer) { "false" } else { "true" }
 pnpm desktop:build
 if ($LASTEXITCODE -ne 0) {
     throw "La compilation Tauri a échoué."

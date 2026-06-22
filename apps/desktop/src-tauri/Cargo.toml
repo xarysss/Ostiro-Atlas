@@ -1,6 +1,6 @@
 [package]
 name = "ostiro-atlas"
-version = "0.3.0"
+version = "0.4.0"
 description = "Gestion patrimoniale locale, fiable et open source"
 authors = ["Ostiro contributors"]
 edition = "2021"

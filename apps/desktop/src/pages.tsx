@@ -40,7 +40,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { previewCsv, type ImportPreview, type ImportedRow } from "@ostiro/importers";
 import type { ReliabilityStatus } from "@ostiro/shared";
 import { experienceLabels, goalLabels, type LocalProfile } from "./profile-types";
-import { EmptyState, euro, euroPrecise, MetricCard, ReliabilityBadge, Section, type TraceInfo } from "./components";
+import { BrandLogo, EmptyState, euro, euroPrecise, MetricCard, ReliabilityBadge, Section, type TraceInfo } from "./components";
 import type { PortfolioData, Account, Position, Transaction, Dividend, Fee, DataIssue } from "./data-store";
 
 // Asset category colors for mapping
@@ -81,7 +81,12 @@ const metricTrace = (title: string, value: string, formula: string, status: Reli
   explanation: "Cette valeur est recalculée localement à partir des données de votre profil.",
 });
 
-export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: { inspect: (trace: TraceInfo) => void; navigate: (page: string) => void; profile: LocalProfile; onOpenDemo: () => void; data: PortfolioData }) {
+export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data, isPrivate, allowDemo = true }: { inspect: (trace: TraceInfo) => void; navigate: (page: string) => void; profile: LocalProfile; onOpenDemo: () => void; data: PortfolioData; isPrivate?: boolean; allowDemo?: boolean }) {
+  const mask = (val: number | string) => {
+    if (isPrivate) return "•••••• €";
+    if (typeof val === "number") return euro(val);
+    return val;
+  };
   const hasData = data && data.accounts && data.accounts.length > 0;
   
   if (!hasData) {
@@ -107,7 +112,7 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
           borderRadius: "20px",
           boxShadow: "0 24px 80px rgba(0,0,0,0.45)"
         }}>
-          <div className="brand__mark" style={{ width: "48px", height: "48px" }}><span/><span/><span/></div>
+          <BrandLogo variant="mark" className="brand-logo--hero-mark" />
           <h2 style={{ fontSize: "20px", margin: "0", fontWeight: "600", letterSpacing: "-0.02em" }}>Bienvenue, ajoutez un premier élément pour construire votre patrimoine</h2>
           <p style={{ color: "var(--muted)", maxWidth: "550px", fontSize: "11px", lineHeight: "1.6", margin: "0 0 10px" }}>
             Commencez par ajouter vos comptes, vos investissements ou vos actifs pour construire votre vision patrimoniale. Toutes vos données restent stockées localement et chiffrées sur votre PC.
@@ -126,10 +131,10 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "24px", marginTop: "20px", borderTop: "1px solid var(--line-soft)", paddingTop: "20px", width: "100%", justifyContent: "center" }}>
-            <button className="text-button" onClick={onOpenDemo} style={{ fontSize: "10px", textDecoration: "underline" }}>
+            {allowDemo && <button className="text-button" onClick={onOpenDemo} style={{ fontSize: "10px", textDecoration: "underline" }}>
               🚀 Ouvrir le compte démo
-            </button>
-            <span style={{ color: "var(--line-soft)", fontSize: "12px" }}>|</span>
+            </button>}
+            {allowDemo && <span style={{ color: "var(--line-soft)", fontSize: "12px" }}>|</span>}
             <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--muted)", fontSize: "10px" }}>
               <CirclePlay size={14} />
               <span>Découvrir Ostiro Atlas en 2 minutes (vidéo bientôt disponible)</span>
@@ -223,12 +228,12 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
       }}>
         <span className="eyebrow" style={{ textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "11px", color: "var(--muted)", marginBottom: "8px" }}>Patrimoine Net</span>
         <h1 style={{ fontSize: "52px", fontWeight: 700, letterSpacing: "-0.04em", margin: "0 0 8px 0", color: "#FCFCFC" }}>
-          {euro(netWealth)}
+          {mask(netWealth)}
         </h1>
         
         <div style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "12px", marginBottom: "32px" }}>
           <span className="positive" style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
-            <TrendingUp size={13} /> +1,2% (+{euro(netWealth * 0.012)})
+            <TrendingUp size={13} /> +1,2% (+{mask(netWealth * 0.012)})
           </span>
           <span style={{ color: "var(--muted-2)" }}>ce mois-ci</span>
         </div>
@@ -254,22 +259,22 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
       </div>
 
       <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "20px" }}>
-        <MetricCard label="Investissements" value={euro(totalInvestments)} change={`${totalGain >= 0 ? "+" : ""}${euro(totalGain)} total`} icon={TrendingUp} status="reliable" onInspect={() => inspect(metricTrace("Investissements", euro(totalInvestments), "Σ valeurs de marché des positions"))} />
-        <MetricCard label="Performance nette" value={`${totalGain >= 0 ? "+" : ""}${euro(totalGain)}`} change="plus-value latente" icon={BarChart3} status="verified" onInspect={() => inspect(metricTrace("Performance nette", `${totalGain >= 0 ? "+" : ""}${euro(totalGain)}`, "valeur finale - coût d'achat"))} />
-        <MetricCard label="Revenus dividendes" value={euro(totalDividends)} change="nets perçus" icon={CircleDollarSign} status="reliable" onInspect={() => inspect(metricTrace("Revenus dividendes", euro(totalDividends), "Σ dividendes perçus"))} />
+        <MetricCard label="Investissements" value={mask(totalInvestments)} change={`${totalGain >= 0 ? "+" : ""}${mask(totalGain)} total`} icon={TrendingUp} status="reliable" onInspect={() => inspect(metricTrace("Investissements", mask(totalInvestments), "Σ valeurs de marché des positions"))} />
+        <MetricCard label="Performance nette" value={`${totalGain >= 0 ? "+" : ""}${mask(totalGain)}`} change="plus-value latente" icon={BarChart3} status="verified" onInspect={() => inspect(metricTrace("Performance nette", `${totalGain >= 0 ? "+" : ""}${mask(totalGain)}`, "valeur finale - coût d'achat"))} />
+        <MetricCard label="Revenus dividendes" value={mask(totalDividends)} change="nets perçus" icon={CircleDollarSign} status="reliable" onInspect={() => inspect(metricTrace("Revenus dividendes", mask(totalDividends), "Σ dividendes perçus"))} />
       </div>
 
       <div className="dashboard-grid">
         <Section title="Allocation" subtitle="Répartition du patrimoine" action={<button className="text-button" onClick={() => navigate("accounts")}>Détails <ChevronRight size={15}/></button>}>
           <div className="allocation-wrap">
             <div className="donut" style={{ background: donutBackground }}>
-              <div><strong>{euro(netWealth)}</strong><span>Total net</span></div>
+              <div><strong>{mask(netWealth)}</strong><span>Total net</span></div>
             </div>
             <div className="allocation-list">
               {allocations.map((item) => (
                 <div key={item.label}>
                   <i style={{ background: item.color }}/>
-                  <span>{item.label}<small>{euro(item.value)}</small></span>
+                  <span>{item.label}<small>{mask(item.value)}</small></span>
                   <strong>{item.percent}%</strong>
                 </div>
               ))}
@@ -281,10 +286,10 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
           <Section title="Comptes et actifs" subtitle="Dernières valeurs connues" action={<button className="text-button" onClick={() => navigate("accounts")}>Tout voir <ChevronRight size={15}/></button>}>
             <div className="account-list">
               {data.accounts.slice(0, 4).map((account) => (
-                <button key={account.id} onClick={() => inspect({ title: account.name, value: euro(account.value), status: account.reliability, asOf: account.updated, source: account.institution, formula: account.value < 0 ? "Capital restant dû" : "Solde", explanation: `Valeur issue de ${account.kind.toLowerCase()}.` })}>
+                <button key={account.id} onClick={() => inspect({ title: account.name, value: mask(account.value), status: account.reliability, asOf: account.updated, source: account.institution, formula: account.value < 0 ? "Capital restant dû" : "Solde", explanation: `Valeur issue de ${account.kind.toLowerCase()}.` })}>
                   <i style={{ background: categoryColors[account.kind] || account.color }}/>
                   <span><strong>{account.name}</strong><small>{account.institution}</small></span>
-                  <span className="account-list__value"><strong>{euro(account.value)}</strong><ReliabilityBadge status={account.reliability} compact /></span>
+                  <span className="account-list__value"><strong>{mask(account.value)}</strong><ReliabilityBadge status={account.reliability} compact /></span>
                 </button>
               ))}
             </div>
@@ -309,7 +314,12 @@ export function DashboardPage({ inspect, navigate, profile, onOpenDemo, data }: 
   );
 }
 
-export function AccountsPage({ inspect, data, navigate }: { inspect: (trace: TraceInfo) => void; data: PortfolioData; navigate: (page: string) => void }) {
+export function AccountsPage({ inspect, data, navigate, isPrivate }: { inspect: (trace: TraceInfo) => void; data: PortfolioData; navigate: (page: string) => void; isPrivate?: boolean }) {
+  const mask = (val: number | string) => {
+    if (isPrivate) return "•••••• €";
+    if (typeof val === "number") return euro(val);
+    return val;
+  };
   const totalAssets = data.accounts.filter(a => a.value > 0).reduce((acc, a) => acc + a.value, 0);
   const totalLiabilities = Math.abs(data.accounts.filter(a => a.value < 0).reduce((acc, a) => acc + a.value, 0));
   const netWealth = totalAssets - totalLiabilities;
@@ -1118,7 +1128,8 @@ export function SettingsPage({
   onDeveloper, 
   onUpdateProfile,
   onExportBackup,
-  onImportBackup
+  onImportBackup,
+  showDeveloper = true
 }: { 
   profile: LocalProfile; 
   onSwitchProfile: () => void; 
@@ -1126,6 +1137,7 @@ export function SettingsPage({
   onUpdateProfile: (changes: Partial<LocalProfile["answers"]> & { name?: string }) => void;
   onExportBackup: () => void;
   onImportBackup: () => void;
+  showDeveloper?: boolean;
 }) {
   const [name, setName] = useState(profile.name);
 
@@ -1233,7 +1245,7 @@ export function SettingsPage({
         onChange={(checked) => onUpdateProfile({ confirmExports: checked })}
       />
     </Section>
-    <Section title="Outils avancés" subtitle="Tests et maintenance locale">
+    {showDeveloper && <Section title="Outils avancés" subtitle="Tests et maintenance locale">
       <div className="settings-actions">
         <button onClick={onDeveloper}>
           <Code2 size={18}/>
@@ -1248,11 +1260,11 @@ export function SettingsPage({
           </button>
         )}
       </div>
-    </Section>
+    </Section>}
     <Section title="À propos">
       <div className="about-mark">
-        <span className="brand__mark"><span/><span/><span/></span>
-        <div><strong>Ostiro Atlas 0.3.0</strong><small>AGPL-3.0 · local-first</small></div>
+        <BrandLogo variant="mark" />
+        <div><strong>Ostiro Atlas 0.4.0</strong><small>AGPL-3.0 · local-first</small></div>
       </div>
       <p className="legal-note">Ostiro fournit des analyses et estimations pédagogiques. Il ne fournit ni conseil en investissement personnalisé, ni conseil fiscal officiel.</p>
     </Section>

@@ -60,6 +60,37 @@ importers:
         specifier: ^6.3.5
         version: 6.4.3(@types/node@22.20.0)
 
+  apps/website:
+    dependencies:
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.7)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.29
+        version: 22.20.0
+      '@types/react':
+        specifier: ^19.1.6
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.1.5
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: ^4.5.0
+        version: 4.7.0(vite@6.4.3(@types/node@22.20.0))
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vite:
+        specifier: ^6.3.5
+        version: 6.4.3(@types/node@22.20.0)
+
   packages/connectors:
     devDependencies:
       typescript:

@@ -8,17 +8,24 @@ Installez Node.js 22+, pnpm 10+, Rust stable, Microsoft C++ Build Tools et WebVi
 pnpm install --frozen-lockfile
 pnpm test
 pnpm typecheck
-pnpm desktop:build
+pnpm installer
 ```
 
 Tauri produit :
 
 ```text
-apps/desktop/src-tauri/target/release/bundle/nsis/Ostiro Atlas_0.1.0_x64-setup.exe
-apps/desktop/src-tauri/target/release/bundle/msi/Ostiro Atlas_0.1.0_x64_en-US.msi
+artifacts/OstiroAtlas-Setup.exe
+artifacts/OstiroAtlas-Portable.exe
+apps/desktop/src-tauri/target/release/bundle/msi/Ostiro Atlas_0.4.0_x64_en-US.msi
 ```
 
 NSIS installe pour l'utilisateur courant, ajoute le menu Démarrer et un désinstalleur. Il embarque le bootstrapper WebView2. L'utilisateur final n'installe ni Node.js, ni Rust, ni Docker, ni PostgreSQL.
+
+`pnpm installer` active `VITE_PUBLIC_BUILD=true`. Le binaire conserve l'onboarding local mais ne presente ni compte de demonstration, ni menu developpeur. Pour compiler volontairement la variante de contribution :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows.ps1 -Developer
+```
 
 ## Releases
 
