@@ -10,6 +10,7 @@ import markLogo from "./assets/ostiro-mark.png";
 
 const downloadUrl = "https://github.com/xarysss/Ostiro-Atlas/releases/latest/download/OstiroAtlas-Setup.exe";
 const githubUrl = "https://github.com/xarysss/Ostiro-Atlas";
+const signingPolicyUrl = `${githubUrl}/blob/main/docs/CODE_SIGNING_POLICY.md`;
 const siteBase = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type VisualKind = "features" | "wealth" | "portfolio" | "budget" | "dividends" | "fees" |
@@ -356,6 +357,7 @@ function GenericPage({ page }: { page: PageDefinition }) {
     <section className="hero product-hero"><div className="hero-copy"><span className="kicker">{page.eyebrow}</span><h1>{page.title}</h1><p>{page.summary}</p><div className="hero-actions"><a href={downloadUrl} className="button button--gold button--large">Telecharger <Download/></a><SiteLink href="/guide-demarrage" className="button button--ghost button--large">Voir le guide <ArrowRight/></SiteLink></div></div><div className="hero-visual"><DashboardMockup kind={page.visual}/></div></section>
     <div className="stats-strip">{page.stats.map(([value,label]) => <span key={value}><strong>{value}</strong><small>{label}</small></span>)}</div>
     <section className="section feature-section"><span className="section-kicker">{page.nav.toUpperCase()}</span><h2>Concu pour rester clair quand vos finances deviennent complexes.</h2><div className="feature-grid">{page.features.map(({icon:Icon,title,text}) => <article key={title}><Icon/><h3>{title}</h3><p>{text}</p></article>)}</div></section>
+    {page.path === "/telecharger" && <section className="section signing-section"><div><span className="section-kicker">CODE SIGNING POLICY</span><h2>Une signature verifiable, jamais supposee.</h2><p>Free code signing provided by <a href="https://about.signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>. Cette mention couvrira les releases dont la signature Authenticode est valide; la version 0.4.0 actuelle reste non signee pendant l'examen de la candidature.</p><a className="text-link" href={signingPolicyUrl}>Lire la politique de signature <ArrowRight/></a></div><ShieldCheck aria-hidden="true"/></section>}
     <section className="section method-section"><div><span className="section-kicker">METHODE OSTIRO</span><h2>Source. Date. Statut. Formule.</h2><p>Ces quatre informations accompagnent les indicateurs sensibles afin de ne jamais confondre une donnee certaine, une estimation et un historique incomplet.</p><SiteLink href="/fiabilite" className="text-link">Voir notre approche des donnees <ArrowRight/></SiteLink></div><div className="method-stack"><span><b>01</b>Source identifiee<Check/></span><span><b>02</b>Date de mise a jour<Check/></span><span><b>03</b>Niveau de confiance<Check/></span><span><b>04</b>Calcul explique<Check/></span></div></section>
     <FinalCta/>
   </main>;

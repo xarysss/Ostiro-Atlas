@@ -1,0 +1,4 @@
+# Security-sensitive release and code-signing files.
+/.github/workflows/release-windows.yml @xarysss
+/docs/CODE_SIGNING_POLICY.md @xarysss
+/.signpath/ @xarysss

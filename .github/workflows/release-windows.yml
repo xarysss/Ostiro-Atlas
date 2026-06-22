@@ -1,38 +1,192 @@
-name: Release Windows
+name: Release Windows signed
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to rebuild and publish
+        required: true
+        type: string
+      source_ref:
+        description: Git ref containing the tagged source
+        required: true
+        type: string
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
-  build:
+  build-sign-release:
+    name: Build, sign and publish
     runs-on: windows-latest
+    environment: code-signing
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+      RELEASE_REF: ${{ inputs.source_ref || github.ref }}
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Check out tagged source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ env.RELEASE_REF }}
+
+      - name: Require SignPath configuration
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          $required = @{
+            SIGNPATH_API_TOKEN = $env:SIGNPATH_API_TOKEN
+            SIGNPATH_ORGANIZATION_ID = $env:SIGNPATH_ORGANIZATION_ID
+            SIGNPATH_PROJECT_SLUG = $env:SIGNPATH_PROJECT_SLUG
+            SIGNPATH_SIGNING_POLICY_SLUG = $env:SIGNPATH_SIGNING_POLICY_SLUG
+          }
+          $missing = @($required.Keys | Where-Object { [string]::IsNullOrWhiteSpace($required[$_]) })
+          if ($missing.Count -gt 0) {
+            throw "Signed releases are blocked until SignPath is configured. Missing: $($missing -join ', ')"
+          }
+          if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "RELEASE_TAG must use semantic versioning, for example v0.4.1."
+          }
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.28.2
-      - uses: actions/setup-node@v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: swatinem/rust-cache@v2
+
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+
+      - uses: swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: apps/desktop/src-tauri
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm typecheck
-      - uses: tauri-apps/tauri-action@v0
+
+      - name: Build unsigned application binary
+        shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_PUBLIC_BUILD: "true"
+        run: pnpm --filter @ostiro/desktop tauri build --no-bundle --ci --no-sign
+
+      - name: Patch application metadata for NSIS before signing
+        shell: pwsh
+        run: pnpm --filter @ostiro/desktop tauri bundle --bundles nsis --ci --no-sign
+
+      - name: Upload unsigned application binary
+        id: upload-unsigned-app
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Ostiro Atlas ${{ github.ref_name }}
-          releaseBody: Consultez CHANGELOG.md. Prototype non signé destiné aux tests.
-          releaseDraft: true
-          prerelease: true
+          name: unsigned-ostiro-app-${{ github.run_id }}
+          path: apps/desktop/src-tauri/target/release/ostiro-atlas.exe
+          compression-level: 0
+          retention-days: 1
+
+      - name: Sign application binary with SignPath
+        uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-app.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: apps/desktop/src-tauri/target/release/signpath-app
+
+      - name: Install and verify signed application binary
+        shell: pwsh
+        run: |
+          $signed = Get-ChildItem -LiteralPath "apps/desktop/src-tauri/target/release/signpath-app" -Recurse -Filter "ostiro-atlas.exe" | Select-Object -First 1
+          if (-not $signed) { throw "SignPath did not return ostiro-atlas.exe." }
+          $signature = Get-AuthenticodeSignature -LiteralPath $signed.FullName
+          if ($signature.Status -ne "Valid") { throw "Application signature is $($signature.Status), expected Valid." }
+          Copy-Item -Force -LiteralPath $signed.FullName -Destination "apps/desktop/src-tauri/target/release/ostiro-atlas.exe"
+
+      - name: Bundle installer around signed application
+        shell: pwsh
+        run: pnpm --filter @ostiro/desktop tauri bundle --bundles nsis --ci --no-sign
+
+      - name: Prepare unsigned installer artifact
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -LiteralPath "apps/desktop/src-tauri/target/release/bundle/nsis" -Filter "*-setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw "Tauri NSIS installer not found." }
+          New-Item -ItemType Directory -Force -Path "artifacts/unsigned-installer" | Out-Null
+          Copy-Item -Force -LiteralPath $installer.FullName -Destination "artifacts/unsigned-installer/OstiroAtlas-Setup.exe"
+
+      - name: Upload unsigned installer
+        id: upload-unsigned-installer
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-ostiro-installer-${{ github.run_id }}
+          path: artifacts/unsigned-installer/OstiroAtlas-Setup.exe
+          compression-level: 0
+          retention-days: 1
+
+      - name: Sign installer with SignPath
+        uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: artifacts/signpath-installer
+
+      - name: Assemble and verify release artifacts
+        shell: pwsh
+        run: |
+          $signedInstaller = Get-ChildItem -LiteralPath "artifacts/signpath-installer" -Recurse -Filter "OstiroAtlas-Setup.exe" | Select-Object -First 1
+          if (-not $signedInstaller) { throw "SignPath did not return OstiroAtlas-Setup.exe." }
+
+          $releaseDir = "artifacts/release"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+          Copy-Item -Force -LiteralPath $signedInstaller.FullName -Destination "$releaseDir/OstiroAtlas-Setup.exe"
+          Copy-Item -Force -LiteralPath "apps/desktop/src-tauri/target/release/ostiro-atlas.exe" -Destination "$releaseDir/OstiroAtlas-Portable.exe"
+
+          foreach ($file in @("$releaseDir/OstiroAtlas-Setup.exe", "$releaseDir/OstiroAtlas-Portable.exe")) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file
+            if ($signature.Status -ne "Valid") { throw "$file signature is $($signature.Status), expected Valid." }
+            (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash | Set-Content -Encoding ASCII -LiteralPath "$file.sha256"
+          }
+
+      - name: Upload verified signed artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-ostiro-atlas-${{ env.RELEASE_TAG }}
+          path: artifacts/release/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          Ostiro Atlas $env:RELEASE_TAG pour Windows.
+
+          Les executables de cette release ont une signature Authenticode valide.
+          Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+          Voir docs/CODE_SIGNING_POLICY.md pour la politique complete.
+          "@
+          $notes | Set-Content -Encoding UTF8 -LiteralPath "artifacts/release-notes.md"
+
+          gh release view $env:RELEASE_TAG 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $env:RELEASE_TAG --title "Ostiro Atlas $env:RELEASE_TAG" --notes-file "artifacts/release-notes.md" --draft=false --prerelease=false --latest
+          } else {
+            gh release create $env:RELEASE_TAG --title "Ostiro Atlas $env:RELEASE_TAG" --notes-file "artifacts/release-notes.md" --verify-tag --latest
+          }
+          gh release upload $env:RELEASE_TAG artifacts/release/* --clobber

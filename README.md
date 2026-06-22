@@ -94,6 +94,15 @@ Les données brutes importées sont immuables. Les corrections sont stockées s�
 
 Consultez [SECURITY.md](SECURITY.md) et [docs/PRIVACY.md](docs/PRIVACY.md).
 
+## Code signing policy
+
+Les releases Windows signees sont construites sur GitHub Actions puis signees
+par SignPath avant publication. Free code signing provided by
+[SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org). Les roles, controles et commandes
+de verification sont documentes dans la
+[politique de signature](docs/CODE_SIGNING_POLICY.md).
+
 ## Contribuer
 
 Les contributions sont les bienvenues. Lisez [CONTRIBUTING.md](CONTRIBUTING.md), le [code de conduite](CODE_OF_CONDUCT.md) et la [roadmap](ROADMAP.md). Les vulnérabilités doivent suivre la procédure privée décrite dans [SECURITY.md](SECURITY.md).
